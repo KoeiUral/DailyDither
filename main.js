@@ -10,22 +10,22 @@ const FG_DITHER = true;
 const FG_SCALE_F = 10;
 
 const BG_GRAY_SCALE = true;
-const BG_ASCII = true;
+const BG_ASCII = false;
 const BG_DITHER = true;
 const BG_SCALE_F = 20;
 
 const ASCII_COLOR = true;
 
 const X_ROT = 0.01;//0.01;
-const Y_ROT = 0.01;//0.01;
-const Z_ROT = 0.1;//0.01;
+const Y_ROT = 0.0;//0.01;
+const Z_ROT = 0.0;//0.01;
 
 
 const xOffset = [1, -1, 0, 1];
 const yOffset = [0, 1, 1, 1];
 const weigth = [7, 3, 5, 1];
 
-const modelPath = 'fileName.obj';
+const modelPath = 'model/skull.stl';
 
 let myCanvas;
 let myFont;
@@ -180,7 +180,7 @@ function windowResized() {
 }
 
 function preload() {
-    myModel = loadModel('model/'.modelPath, true);
+    myModel = loadModel(modelPath, true);
     myFont = loadFont('font/C64_Pro_Mono-STYLE.TTF');
     //myTex = loadImage('model/xFede.mtl');
 }
