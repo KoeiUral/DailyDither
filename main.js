@@ -25,6 +25,8 @@ const xOffset = [1, -1, 0, 1];
 const yOffset = [0, 1, 1, 1];
 const weigth = [7, 3, 5, 1];
 
+const modelPath = 'fileName.obj';
+
 let myCanvas;
 let myFont;
 let noiseGen;
@@ -178,7 +180,7 @@ function windowResized() {
 }
 
 function preload() {
-    myModel = loadModel('model/xFede.obj', true);
+    myModel = loadModel('model/'.modelPath, true);
     myFont = loadFont('font/C64_Pro_Mono-STYLE.TTF');
     //myTex = loadImage('model/xFede.mtl');
 }
