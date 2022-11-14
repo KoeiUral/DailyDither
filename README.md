@@ -1,2 +1,2 @@
 # DailiDither
-# Shared project to create crazy dithered gif (almost every day).
+# Shared project to create crazy dithered gif (almost) every day).
