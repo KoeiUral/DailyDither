@@ -25,7 +25,7 @@ const xOffset = [1, -1, 0, 1];
 const yOffset = [0, 1, 1, 1];
 const weigth = [7, 3, 5, 1];
 
-const modelPath = 'model/skull.stl';
+const modelPath = 'model/xFede.obj';
 
 let myCanvas;
 let myFont;
