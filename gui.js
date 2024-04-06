@@ -67,6 +67,14 @@ function updateScale() {
     scaleF = ((tempVal !== NaN) && (tempVal >= 1))  ? tempVal : scaleF;
 }
 
+function updateMadness() {
+    tempVal = parseInt(this.value());
+    if (tempVal !== NaN) {
+        updateColorDepth(tempVal);
+    }
+}
+
+
 function asciiCheckEvent() {
     isAsciiOn = this.checked();
 }
@@ -85,7 +93,7 @@ function matCheckEvent() {
 
 function createGui() {
     let file3DSelector, textureSelector;
-    let xRotInput, yRotInput, zRotInput, scaleInput;
+    let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
     let checkAScii, checkDither, checkBW, checkMat; 
     
     guiAddText("Select 3D file form Model Folder", DEFAULT_W + 50, 10);
@@ -136,6 +144,11 @@ function createGui() {
     checkMat.position(DEFAULT_W + 50, 325);
     checkMat.changed(matCheckEvent);
 
+    guiAddText("PAZZIA Factor:", DEFAULT_W + 50, 350);
+    madInput = createInput('4');
+    madInput.position(DEFAULT_W + 160, 362);
+    madInput.size(40);
+    madInput.input(updateMadness);
 }
 
 
