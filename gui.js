@@ -18,6 +18,7 @@ let myTexture;
 
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
+let gifBtn;
 
 function onModelLoaded() {
     modelReady = true;
@@ -149,6 +150,9 @@ function createGui() {
     madInput.position(DEFAULT_W + 160, 362);
     madInput.size(40);
     madInput.input(updateMadness);
+
+    gifBtn = createButton('SAVE GIF');
+    gifBtn.position(DEFAULT_W + 50, 402);
 }
 
 
@@ -164,9 +168,6 @@ function setup() {
     initFonts(fontImage);
     createGui();
 }
-
-
-
 
 
 function compute3D() {
@@ -195,6 +196,16 @@ function compute3D() {
     return _3dGraph.get();
 }
 
+function startSavingGIF() {
+    let xPeriod = (xRot != 0) ? floor(2 * PI / xRot) : 1;
+    let yPeriod = (yRot != 0) ? floor(2 * PI / yRot) : 1;
+    let zPeriod = (zRot != 0) ? floor(2 * PI / zRot) : 1;
+
+    let hyperPeriod = lcm3(xPeriod, yPeriod, zPeriod);
+    console.log("Start saving gif, hyper period: " + hyperPeriod);
+
+    saveGif('gifMatta', hyperPeriod, {  units: 'frames' });
+}
 
 function draw() {
     background(0);
@@ -221,4 +232,6 @@ function draw() {
         finalImg = upScale(image2D, finalImg, scaleF);
         image(finalImg, 0, 0, DEFAULT_W, DEFAULT_H);
     }
+
+    gifBtn.mousePressed(startSavingGIF);
 }
