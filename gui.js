@@ -10,7 +10,7 @@ let xRot = 0;
 let yRot = 0;
 let zRot = 0;
 let scaleF = 1;
-let _3dLayer;
+
 let _3dGraph;
 let image2D;
 let finalImg;
@@ -185,7 +185,7 @@ function compute3D() {
     _3dGraph.rotateY(frameCount * yRot);
     _3dGraph.rotateZ(frameCount * zRot);
 
-    if(isMatOn) {
+    if ((isMatOn) || (textureReady !== true)) {
         _3dGraph.normalMaterial();
     } else {
         _3dGraph.texture(myTexture);
@@ -210,7 +210,7 @@ function startSavingGIF() {
 function draw() {
     background(0);
 
-    if ((modelReady) && (textureReady)) {
+    if (modelReady) {
         let image2D = compute3D();
 
         // Downscale the image
