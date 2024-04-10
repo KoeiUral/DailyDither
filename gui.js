@@ -11,8 +11,11 @@ let xRot = 0;
 let yRot = 0;
 let zRot = 0;
 let scaleF = 1;
+let bgScaleF = 1;
 
 let _3dGraph;
+let _2dGraph;
+
 let image2D;
 let finalImg;
 let myTexture;
@@ -20,6 +23,7 @@ let bg;
 
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
+let isBgDitherOn, isBgBWOn;
 let gifBtn;
 
 function onModelLoaded() {
@@ -81,6 +85,11 @@ function updateScale() {
     scaleF = ((tempVal !== NaN) && (tempVal >= 1))  ? tempVal : scaleF;
 }
 
+function updateBGScale() {
+    tempVal = parseInt(this.value());
+    bgScaleF = ((tempVal !== NaN) && (tempVal >= 1))  ? tempVal : bgScaleF;
+}
+
 function updateMadness() {
     tempVal = parseInt(this.value());
     if (tempVal !== NaN) {
@@ -101,6 +110,14 @@ function bwCheckEvent() {
     isBWOn = this.checked();
 }
 
+function bgDitherCheckEvent() {
+    isBgDitherOn = this.checked();
+}
+
+function bgBwCheckEvent() {
+    isBgBWOn = this.checked();
+}
+
 function matCheckEvent() {
     isMatOn = this.checked();
 }
@@ -108,7 +125,8 @@ function matCheckEvent() {
 function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
-    let checkAScii, checkDither, checkBW, checkMat; 
+    let checkAScii, checkDither, checkBW, checkMat;
+    let bgCheckDither, bgCheckBW;
     
     guiAddText("Select 3D file form Model Folder", DEFAULT_W + 50, 10);
     file3DSelector = createFileInput(handle3DFile);
@@ -146,15 +164,15 @@ function createGui() {
     checkAScii.position(DEFAULT_W + 50, 250);
     checkAScii.changed(asciiCheckEvent);
 
-    checkDither = createCheckbox('Dither', false);
+    checkDither = createCheckbox('Dither FG', false);
     checkDither.position(DEFAULT_W + 50, 275);
     checkDither.changed(ditherCheckEvent);
 
-    checkBW = createCheckbox('B & W', false);
+    checkBW = createCheckbox('B&W FG', false);
     checkBW.position(DEFAULT_W + 50, 300);
     checkBW.changed(bwCheckEvent);
 
-    checkMat = createCheckbox('Material DBG', false);
+    checkMat = createCheckbox('Material FB', false);
     checkMat.position(DEFAULT_W + 50, 325);
     checkMat.changed(matCheckEvent);
 
@@ -171,6 +189,20 @@ function createGui() {
     bgSelector = createFileInput(handleBGFile);
     bgSelector.position(DEFAULT_W + 50, 460);
 
+    guiAddText("BG Scale Factor:", DEFAULT_W + 50, 480);
+    bgScaleInput = createInput('1');
+    bgScaleInput.position(DEFAULT_W + 140, 500);
+    bgScaleInput.size(40);
+    bgScaleInput.input(updateBGScale);
+
+    bgCheckDither = createCheckbox('Dither BG', false);
+    bgCheckDither.position(DEFAULT_W + 50, 525);
+    bgCheckDither.changed(bgDitherCheckEvent);
+
+    bgCheckBW = createCheckbox('B&W BG', false);
+    bgCheckBW.position(DEFAULT_W + 50, 550);
+    bgCheckBW.changed(bgBwCheckEvent);
+
 }
 
 
@@ -182,6 +214,7 @@ function setup() {
     pixelDensity(1);
     createCanvas(DEFAULT_W, DEFAULT_H);
     _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
+    _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
 
     initFonts(fontImage);
     createGui();
@@ -214,6 +247,11 @@ function compute3D() {
     return _3dGraph.get();
 }
 
+function compute2D() {
+    _2dGraph.image(bg, 0, 0, DEFAULT_W, DEFAULT_H);
+    return _2dGraph.get();
+}
+
 function startSavingGIF() {
     let xPeriod = (xRot != 0) ? floor(2 * PI / xRot) : 1;
     let yPeriod = (yRot != 0) ? floor(2 * PI / yRot) : 1;
@@ -229,7 +267,20 @@ function draw() {
     background(0);
 
     if(bgReady) {
-        image(bg, 0, 0, DEFAULT_W, DEFAULT_H);
+        let bgImage = compute2D();
+        bgImage.resize(DEFAULT_W / bgScaleF, DEFAULT_H / bgScaleF);
+      
+        if(isBgBWOn) {
+            bgImage.filter(GRAY); 
+        }
+
+        if (isBgDitherOn) {
+            ditherIt(bgImage); 
+        }
+
+        let finalBg;
+        finalBg = upScale(bgImage, finalBg, bgScaleF);
+        image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
     }
 
     if (modelReady) {
