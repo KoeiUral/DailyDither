@@ -24,6 +24,7 @@ let bg;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
+let isMixerOn = false;
 let gifBtn;
 
 function onModelLoaded() {
@@ -122,11 +123,16 @@ function matCheckEvent() {
     isMatOn = this.checked();
 }
 
+function mixCheckEvent() {
+    isMixerOn = this.checked();
+}
+
 function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
     let checkAScii, checkDither, checkBW, checkMat;
     let bgCheckDither, bgCheckBW;
+    let checkMixer;
     
     guiAddText("Select 3D file form Model Folder", DEFAULT_W + 50, 10);
     file3DSelector = createFileInput(handle3DFile);
@@ -203,6 +209,9 @@ function createGui() {
     bgCheckBW.position(DEFAULT_W + 50, 550);
     bgCheckBW.changed(bgBwCheckEvent);
 
+    checkMixer = createCheckbox('Enable CH mixer', false);
+    checkMixer.position(DEFAULT_W + 50, 600);
+    checkMixer.changed(mixCheckEvent);
 }
 
 
@@ -217,6 +226,7 @@ function setup() {
     _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
 
     initFonts(fontImage);
+    initNoise();
     createGui();
 }
 
@@ -265,6 +275,8 @@ function startSavingGIF() {
 
 function draw() {
     background(0);
+    let finalBg;
+    let finalFg;
 
     if(bgReady) {
         let bgImage = compute2D();
@@ -278,9 +290,12 @@ function draw() {
             ditherIt(bgImage); 
         }
 
-        let finalBg;
+
         finalBg = upScale(bgImage, finalBg, bgScaleF);
-        image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
+
+        if (isMixerOn === false) {
+            image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
+        }
     }
 
     if (modelReady) {
@@ -301,12 +316,18 @@ function draw() {
         //    image2D = asciify(image2D, image2D);
         //}
 
-
-
         // Upscale back the image
-        let finalImg;
-        finalImg = upScale(image2D, finalImg, scaleF);
-        image(finalImg, 0, 0, DEFAULT_W, DEFAULT_H);
+        finalFg = upScale(image2D, finalFg, scaleF);
+
+        if (isMixerOn === false) {
+            image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
+        }
+    }
+
+    if ((modelReady) && (bgReady) && (isMixerOn)) {
+        let mixImage;
+        mixImage = mixChannelsNoise(finalFg, finalBg, mixImage);
+        image(mixImage, 0, 0, DEFAULT_W, DEFAULT_H);
     }
 
     gifBtn.mousePressed(startSavingGIF);
