@@ -5,6 +5,7 @@ const MODEL_PATH = '../model/';
 
 let modelReady = false;
 let textureReady = false;
+let bgReady = false;
 let myModel;
 let xRot = 0;
 let yRot = 0;
@@ -15,6 +16,7 @@ let _3dGraph;
 let image2D;
 let finalImg;
 let myTexture;
+let bg;
 
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
@@ -28,6 +30,13 @@ function onTextureLoaded() {
     textureReady = true;
 }
 
+function onBGLoaded() {
+    bgReady = true;
+    bg.hide();
+    bg.volume(0);
+    bg.loop();
+}
+
 
 function handle3DFile(file) {
     modelReady = false;
@@ -37,7 +46,11 @@ function handle3DFile(file) {
 function handleTexture(file) {
     textureReady = false;
     myTexture = loadImage(MODEL_PATH + file.name, onTextureLoaded);
-    console.log("Called TEX function");
+}
+
+function handleBGFile(file) {
+    bgReady = false;
+    bg = createVideo(MODEL_PATH + file.name, onBGLoaded);
 }
 
 function guiAddText(message, posX, posY) {
@@ -93,7 +106,7 @@ function matCheckEvent() {
 }
 
 function createGui() {
-    let file3DSelector, textureSelector;
+    let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
     let checkAScii, checkDither, checkBW, checkMat; 
     
@@ -153,6 +166,11 @@ function createGui() {
 
     gifBtn = createButton('SAVE GIF');
     gifBtn.position(DEFAULT_W + 50, 402);
+
+    guiAddText("Select BG file form Model Folder", DEFAULT_W + 50, 420);
+    bgSelector = createFileInput(handleBGFile);
+    bgSelector.position(DEFAULT_W + 50, 460);
+
 }
 
 
@@ -210,6 +228,10 @@ function startSavingGIF() {
 function draw() {
     background(0);
 
+    if(bgReady) {
+        image(bg, 0, 0, DEFAULT_W, DEFAULT_H);
+    }
+
     if (modelReady) {
         let image2D = compute3D();
 
@@ -226,6 +248,8 @@ function draw() {
         //else if (isAsciiOn) {
         //    image2D = asciify(image2D, image2D);
         //}
+
+        addAlpha(image2D);
 
         // Upscale back the image
         let finalImg;
