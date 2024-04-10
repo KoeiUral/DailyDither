@@ -237,6 +237,7 @@ function draw() {
 
         // Downscale the image
         image2D.resize(DEFAULT_W / scaleF, DEFAULT_H / scaleF);
+        addAlpha(image2D);
 
         if(isBWOn) {
             image2D.filter(GRAY); 
@@ -249,7 +250,7 @@ function draw() {
         //    image2D = asciify(image2D, image2D);
         //}
 
-        addAlpha(image2D);
+
 
         // Upscale back the image
         let finalImg;
