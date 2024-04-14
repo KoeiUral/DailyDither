@@ -1,7 +1,7 @@
-const DEFAULT_W = 800;
-const DEFAULT_H = 800;
+const DEFAULT_W = 400;
+const DEFAULT_H = 400;
 
-const MODEL_PATH = '../model/';
+
 
 let modelReady = false;
 let textureReady = false;
@@ -21,18 +21,24 @@ let finalImg;
 let myTexture;
 let bg;
 
+let mySource3D;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
 let isMixerOn = false;
 let gifBtn;
 
-function onModelLoaded() {
-    modelReady = true;
-}
+//function onModelLoaded() {
+//    modelReady = true;
+//}
 
 function onTextureLoaded() {
     textureReady = true;
+}
+
+function modelLoaded(pizza) {
+    mySource3D.onModelLoaded();
+    console.log(pizza.gid);
 }
 
 function onBGLoaded() {
@@ -44,8 +50,9 @@ function onBGLoaded() {
 
 
 function handle3DFile(file) {
-    modelReady = false;
-    myModel = loadModel(MODEL_PATH + file.name, true, onModelLoaded);
+    //modelReady = false;
+    //myModel = loadModel(MODEL_PATH + file.name, true, onModelLoaded);
+    mySource3D.loadModel(file);
 }
 
 function handleTexture(file) {
@@ -225,6 +232,8 @@ function setup() {
     _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
     _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
 
+    mySource3D = new Source3D();
+
     initFonts(fontImage);
     initNoise();
     createGui();
@@ -298,6 +307,11 @@ function draw() {
         }
     }
 
+    mySource3D.update();
+    finalFg = mySource3D.render();
+    image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
+
+/*
     if (modelReady) {
         let image2D = compute3D();
 
@@ -323,7 +337,7 @@ function draw() {
             image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
         }
     }
-
+*/
     if ((modelReady) && (bgReady) && (isMixerOn)) {
         let mixImage;
         mixImage = mixChannelsNoise(finalFg, finalBg, mixImage);
