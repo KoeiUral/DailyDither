@@ -38,7 +38,8 @@ function onTextureLoaded() {
 
 function modelLoaded(pizza) {
     mySource3D.onModelLoaded();
-    console.log(pizza.gid);
+    console.log("GID="+pizza.gid+"$");
+    console.log(pizza);
 }
 
 function onBGLoaded() {
