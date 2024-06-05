@@ -1,5 +1,5 @@
-const DEFAULT_W = 800;
-const DEFAULT_H = 800;
+const DEFAULT_W = 600;
+const DEFAULT_H = 600;
 
 const MODEL_PATH = '../model/';
 
@@ -239,7 +239,7 @@ function compute3D() {
     //_3dGraph.lights();
     //_3dGraph.pointLight(255, 255, 255, 100, 100, 100);
 
-    _3dGraph.scale(3); // Scaled to make model fit into canvas
+    _3dGraph.scale(3 / 800 * DEFAULT_W); // Scaled to make model fit into canvas
     _3dGraph.rotateX(PI);
     _3dGraph.rotateY(PI/2);
     _3dGraph.rotateX(frameCount * xRot);
