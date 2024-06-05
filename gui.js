@@ -287,7 +287,7 @@ function draw() {
         }
 
         if (isBgDitherOn) {
-            ditherIt(bgImage); 
+            ditherIt(bgImage, isBgBWOn); 
         }
 
 
@@ -310,7 +310,7 @@ function draw() {
         }
 
         if (isDitherOn) {
-            ditherIt(image2D); 
+            ditherIt(image2D, isBWOn); 
         }
         //else if (isAsciiOn) {
         //    image2D = asciify(image2D, image2D);
