@@ -16,6 +16,9 @@ let bgScaleF = 1;
 let hueOffset = 0;
 let flashOffset = 0;
 
+let hueOffsetBg = 0;
+let flashOffsetBg = 0;
+
 let _3dGraph;
 let _2dGraph;
 
@@ -98,6 +101,21 @@ function updateFlash() {
     }
 }
 
+function updateHueBg() {
+    tempVal = parseInt(this.value());
+    if (tempVal !== NaN) {
+        hueOffsetBg = tempVal;
+    }
+}
+
+function updateFlashBg() {
+    tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal >= 0)) {
+        flashOffsetBg = tempVal;
+    }
+}
+
+
 
 function updateScale() {
     tempVal = this.value();
@@ -148,7 +166,7 @@ function mixCheckEvent() {
 function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
-    let hueOffInput, hueMadInput;
+    let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
     let checkAScii, checkDither, checkBW, checkMat;
     let bgCheckDither, bgCheckBW;
     let checkMixer;
@@ -240,8 +258,22 @@ function createGui() {
     bgCheckBW.position(DEFAULT_W + 50, 550);
     bgCheckBW.changed(bgBwCheckEvent);
 
+    guiAddText("Hue Offset:", DEFAULT_W + 50, 590);
+    hueOffInputBg = createInput('0');
+    hueOffInputBg.position(DEFAULT_W + 120, 600);
+    hueOffInputBg.size(40);
+    hueOffInputBg.input(updateHueBg);
+
+    guiAddText("Flashing:", DEFAULT_W + 180, 590);
+    hueMadInputBg = createInput('0');
+    hueMadInputBg.position(DEFAULT_W + 240, 600);
+    hueMadInputBg.size(40);
+    hueMadInputBg.input(updateFlashBg);
+
+
+
     checkMixer = createCheckbox('Enable CH mixer', false);
-    checkMixer.position(DEFAULT_W + 50, 600);
+    checkMixer.position(DEFAULT_W + 50, 700);
     checkMixer.changed(mixCheckEvent);
 }
 
@@ -315,6 +347,8 @@ function draw() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
+        } else {    
+            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg);
         }
 
         if (isBgDitherOn) {
@@ -338,9 +372,9 @@ function draw() {
 
         if(isBWOn) {
             image2D.filter(GRAY); 
+        } else {
+            ShiftHue(image2D, hueOffset, flashOffset);
         }
-
-        ShiftHue(image2D, hueOffset, flashOffset);
 
         if (isDitherOn) {
             ditherIt(image2D, isBWOn); 
