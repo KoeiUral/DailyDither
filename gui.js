@@ -13,6 +13,9 @@ let zRot = 0;
 let scaleF = 1;
 let bgScaleF = 1;
 
+let hueOffset = 0;
+let flashOffset = 0;
+
 let _3dGraph;
 let _2dGraph;
 
@@ -81,6 +84,21 @@ function updateZrot() {
     zRot = (tempVal !== NaN)? tempVal : xRot;
 }
 
+function updateHue() {
+    tempVal = parseInt(this.value());
+    if (tempVal !== NaN) {
+        hueOffset = tempVal;
+    }
+}
+
+function updateFlash() {
+    tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal >= 0)) {
+        flashOffset = tempVal;
+    }
+}
+
+
 function updateScale() {
     tempVal = this.value();
     scaleF = ((tempVal !== NaN) && (tempVal >= 1))  ? tempVal : scaleF;
@@ -130,6 +148,7 @@ function mixCheckEvent() {
 function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
+    let hueOffInput, hueMadInput;
     let checkAScii, checkDither, checkBW, checkMat;
     let bgCheckDither, bgCheckBW;
     let checkMixer;
@@ -141,6 +160,18 @@ function createGui() {
     guiAddText("Select Texture form Model Folder", DEFAULT_W + 50, 80);
     textureSelector = createFileInput(handleTexture);
     textureSelector.position(DEFAULT_W + 50, 120);
+
+    guiAddText("Hue Offset:", DEFAULT_W + 230, 110);
+    hueOffInput = createInput('0');
+    hueOffInput.position(DEFAULT_W + 300, 120);
+    hueOffInput.size(40);
+    hueOffInput.input(updateHue);
+
+    guiAddText("Flashing:", DEFAULT_W + 360, 110);
+    hueMadInput = createInput('0');
+    hueMadInput.position(DEFAULT_W + 420, 120);
+    hueMadInput.size(40);
+    hueMadInput.input(updateFlash);
 
     guiAddText("X Rot:", DEFAULT_W + 50, 160);
     xRotInput = createInput('0');
@@ -309,9 +340,13 @@ function draw() {
             image2D.filter(GRAY); 
         }
 
+        ShiftHue(image2D, hueOffset, flashOffset);
+
         if (isDitherOn) {
             ditherIt(image2D, isBWOn); 
         }
+
+ 
         //else if (isAsciiOn) {
         //    image2D = asciify(image2D, image2D);
         //}
