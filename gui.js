@@ -15,9 +15,11 @@ let bgScaleF = 1;
 
 let hueOffset = 0;
 let flashOffset = 0;
-
 let hueOffsetBg = 0;
 let flashOffsetBg = 0;
+
+let depthFg = 4;
+let depthBg = 4;
 
 let _3dGraph;
 let _2dGraph;
@@ -129,8 +131,22 @@ function updateBGScale() {
 
 function updateMadness() {
     tempVal = parseInt(this.value());
-    if (tempVal !== NaN) {
+    if ((tempVal !== NaN) && (tempVal >= 1)) {
         updateColorDepth(tempVal);
+    }
+}
+
+function updateMadnessFg() {
+    tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal >= 1)) {
+        depthFg = tempVal;
+    }
+}
+
+function updateMadnessBg() {
+    tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal >= 1)) {
+        depthBg = tempVal;
     }
 }
 
@@ -165,7 +181,7 @@ function mixCheckEvent() {
 
 function createGui() {
     let file3DSelector, textureSelector, bgSelector;
-    let xRotInput, yRotInput, zRotInput, scaleInput, madInput;
+    let xRotInput, yRotInput, zRotInput, scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
     let checkAScii, checkDither, checkBW, checkMat;
     let bgCheckDither, bgCheckBW;
@@ -236,6 +252,20 @@ function createGui() {
     madInput.position(DEFAULT_W + 160, 362);
     madInput.size(40);
     madInput.input(updateMadness);
+
+    guiAddText("FG:", DEFAULT_W + 220, 350);
+    madInputFg = createInput('4');
+    madInputFg.position(DEFAULT_W + 250, 362);
+    madInputFg.size(40);
+    madInputFg.input(updateMadnessFg);
+
+    guiAddText("BG:", DEFAULT_W + 300, 350);
+    madInputBg = createInput('4');
+    madInputBg.position(DEFAULT_W + 330, 362);
+    madInputBg.size(40);
+    madInputBg.input(updateMadnessBg);
+
+
 
     gifBtn = createButton('SAVE GIF');
     gifBtn.position(DEFAULT_W + 50, 402);
@@ -347,16 +377,16 @@ function draw() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
-        } else {    
+        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0)) {    
             ShiftHue(bgImage, hueOffsetBg, flashOffsetBg);
         }
 
         if (isBgDitherOn) {
-            ditherIt(bgImage, isBgBWOn); 
+            ditherIt(bgImage, isBgBWOn, depthBg); 
         }
 
 
-        finalBg = upScale(bgImage, finalBg, bgScaleF);
+        finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
 
         if (isMixerOn === false) {
             image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
@@ -372,12 +402,12 @@ function draw() {
 
         if(isBWOn) {
             image2D.filter(GRAY); 
-        } else {
+        } else if (((hueOffset % 360) != 0) || (flashOffset != 0)) {
             ShiftHue(image2D, hueOffset, flashOffset);
         }
 
         if (isDitherOn) {
-            ditherIt(image2D, isBWOn); 
+            ditherIt(image2D, isBWOn, depthFg); 
         }
 
  
@@ -386,7 +416,7 @@ function draw() {
         //}
 
         // Upscale back the image
-        finalFg = upScale(image2D, finalFg, scaleF);
+        finalFg = upScale(image2D, finalFg, scaleF, depthFg);
 
         if (isMixerOn === false) {
             image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
