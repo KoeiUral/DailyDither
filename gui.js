@@ -30,10 +30,18 @@ let myTexture;
 let bg;
 
 
+
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
 let isMixerOn = false;
-let gifBtn;
+
+let glitchEffects = [];
+let glitchFrames = 0;
+let glitchScanDir, glitchScanX, glitchScanY;
+let glitchDurInput, glitchSelect;
+let isPreGlitchOn = true;
+let glitchHoles = [];
+let glitchWarpOffset = 0;
 
 function onModelLoaded() {
     modelReady = true;
@@ -179,6 +187,50 @@ function mixCheckEvent() {
     isMixerOn = this.checked();
 }
 
+function preGlitchCheckEvent() {
+    isPreGlitchOn = this.checked();
+}
+
+function startGlitch() {
+    glitchEffects.length = 0;
+    glitchEffects = glitchSelect.selected();
+
+    for (let i = 0; i < glitchEffects.length; i++) {
+        if (glitchEffects[i] == 1) {
+            glitchScanDir = random(1);
+            glitchScanX = floor(random(DEFAULT_W / bgScaleF));
+            glitchScanY = floor(random(DEFAULT_H / bgScaleF));
+        } else if (glitchEffects[i] == 2) {
+            glitchHoles.length = 0;
+            let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
+    
+            for (let i = 0; i < N; i++) {
+                let srcX = floor(random(DEFAULT_W / bgScaleF));
+                let srcY = floor(random(DEFAULT_H / bgScaleF));
+                let srcW = floor(random(DEFAULT_W / bgScaleF));
+                let srcH = floor(random(DEFAULT_H / bgScaleF));
+                
+                let dstX = floor(random(DEFAULT_W / bgScaleF));
+                let dstY = floor(random(DEFAULT_H / bgScaleF));
+                let dstW = floor(random(DEFAULT_W / bgScaleF));
+                let dstH = floor(random(DEFAULT_H / bgScaleF));
+    
+                glitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
+                                   dx: dstX, dy: dstY , dw: dstW, dh: dstH});
+            }
+        } else if (glitchEffects[i] == 3) {
+            glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
+        }
+    }
+
+
+
+    //glitchType = glitchSelect.selected();
+    let tempVal = parseInt(glitchDurInput.value());
+    glitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
+    console.log("Triggered effects for frames: " +  glitchFrames);
+}
+
 function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput, madInputFg, madInputBg;
@@ -186,6 +238,7 @@ function createGui() {
     let checkAScii, checkDither, checkBW, checkMat;
     let bgCheckDither, bgCheckBW;
     let checkMixer;
+    let glitchTriggerBtn;
     
     guiAddText("Select 3D file form Model Folder", DEFAULT_W + 50, 10);
     file3DSelector = createFileInput(handle3DFile);
@@ -265,10 +318,9 @@ function createGui() {
     madInputBg.size(40);
     madInputBg.input(updateMadnessBg);
 
-
-
     gifBtn = createButton('SAVE GIF');
     gifBtn.position(DEFAULT_W + 50, 402);
+    gifBtn.mousePressed(startSavingGIF);
 
     guiAddText("Select BG file form Model Folder", DEFAULT_W + 50, 420);
     bgSelector = createFileInput(handleBGFile);
@@ -300,10 +352,26 @@ function createGui() {
     hueMadInputBg.size(40);
     hueMadInputBg.input(updateFlashBg);
 
+    guiAddText("Glitch:", DEFAULT_W + 50, 640);
+    glitchSelect = createSelect(true);
+    glitchSelect.position(DEFAULT_W + 100, 640);
+    glitchSelect.option('SCAN', 1);
+    glitchSelect.option('SCRAMBLE', 2);
+    glitchSelect.option('WARP', 3);
 
+    guiAddText("Duration:", DEFAULT_W + 180, 630);
+    glitchDurInput = createInput('0');
+    glitchDurInput.position(DEFAULT_W + 240, 640);
+    glitchDurInput.size(40);
+    glitchPreCheck = createCheckbox('PreGlitch', true);
+    glitchPreCheck.position(DEFAULT_W + 180, 680);
+    glitchPreCheck.changed(preGlitchCheckEvent);
+    glitchTriggerBtn = createButton('TRIGGER');
+    glitchTriggerBtn.position(DEFAULT_W + 240, 720);
+    glitchTriggerBtn.mousePressed(startGlitch);
 
     checkMixer = createCheckbox('Enable CH mixer', false);
-    checkMixer.position(DEFAULT_W + 50, 700);
+    checkMixer.position(DEFAULT_W + 50, 800);
     checkMixer.changed(mixCheckEvent);
 }
 
@@ -374,6 +442,19 @@ function draw() {
     if(bgReady) {
         let bgImage = compute2D();
         bgImage.resize(DEFAULT_W / bgScaleF, DEFAULT_H / bgScaleF);
+
+        if ((isPreGlitchOn === true) && (glitchFrames > 0)) {
+            for (let i = 0; i < glitchEffects.length; i++) {
+                if (glitchEffects[i] == 1) {
+                    GlitchScanner(bgImage,  glitchScanDir, glitchScanX, glitchScanY);
+                } else if (glitchEffects[i] == 2) {
+                    GlitchScramble(bgImage, glitchHoles, 1);
+                } else if (glitchEffects[i] == 3) {
+                    GlitchWarp(bgImage, glitchWarpOffset);
+                }
+            }
+            glitchFrames--;
+        }
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
@@ -388,8 +469,23 @@ function draw() {
 
         finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
 
+        if ((isPreGlitchOn === false) && (glitchFrames > 0)) {
+            for (let i = 0; i < glitchEffects.length; i++) {
+                if (glitchEffects[i] == 1) {
+                    GlitchScanner(finalBg,  glitchScanDir, glitchScanX * bgScaleF, glitchScanY * bgScaleF);
+                } else if (glitchEffects[i]  == 2) {
+                    GlitchScramble(finalBg, glitchHoles, bgScaleF);
+                } else if (glitchEffects[i]  == 3) {
+                    GlitchWarp(finalBg, glitchWarpOffset * bgScaleF);
+                }
+            }
+
+            glitchFrames--;
+        }
+
         if (isMixerOn === false) {
             image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
+            //image(superFinalBG, 0, 0, DEFAULT_W, DEFAULT_H);
         }
     }
 
@@ -429,5 +525,5 @@ function draw() {
         image(mixImage, 0, 0, DEFAULT_W, DEFAULT_H);
     }
 
-    gifBtn.mousePressed(startSavingGIF);
+    //gifBtn.mousePressed(startSavingGIF);
 }
