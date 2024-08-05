@@ -33,6 +33,7 @@ let bg;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
+let isSaturationMax = false;
 let isMixerOn = false;
 
 let glitchEffects = [];
@@ -183,6 +184,10 @@ function matCheckEvent() {
     isMatOn = this.checked();
 }
 
+function saturationCheckEvent() {
+    isSaturationMax = this.checked();
+}
+
 function mixCheckEvent() {
     isMixerOn = this.checked();
 }
@@ -235,7 +240,7 @@ function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
-    let checkAScii, checkDither, checkBW, checkMat;
+    let checkAScii, checkDither, checkBW, checkMat, checkSaturation;
     let bgCheckDither, bgCheckBW;
     let checkMixer;
     let glitchTriggerBtn;
@@ -352,6 +357,10 @@ function createGui() {
     hueMadInputBg.size(40);
     hueMadInputBg.input(updateFlashBg);
 
+    checkSaturation = createCheckbox('MaxSaturation', false);
+    checkSaturation.position(DEFAULT_W + 300, 600);
+    checkSaturation.changed(saturationCheckEvent);
+
     guiAddText("Glitch:", DEFAULT_W + 50, 640);
     glitchSelect = createSelect(true);
     glitchSelect.position(DEFAULT_W + 100, 640);
@@ -458,8 +467,8 @@ function draw() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
-        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0)) {    
-            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg);
+        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (isSaturationMax != 0)) {    
+            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, isSaturationMax);
         }
 
         if (isBgDitherOn) {
@@ -499,7 +508,7 @@ function draw() {
         if(isBWOn) {
             image2D.filter(GRAY); 
         } else if (((hueOffset % 360) != 0) || (flashOffset != 0)) {
-            ShiftHue(image2D, hueOffset, flashOffset);
+            ShiftHue(image2D, hueOffset, flashOffset, false);
         }
 
         if (isDitherOn) {
