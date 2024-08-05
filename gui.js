@@ -17,6 +17,7 @@ let hueOffset = 0;
 let flashOffset = 0;
 let hueOffsetBg = 0;
 let flashOffsetBg = 0;
+let satSlider;
 
 let depthFg = 4;
 let depthBg = 4;
@@ -240,7 +241,7 @@ function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
-    let checkAScii, checkDither, checkBW, checkMat, checkSaturation;
+    let checkAScii, checkDither, checkBW, checkMat; //checkSaturation;
     let bgCheckDither, bgCheckBW;
     let checkMixer;
     let glitchTriggerBtn;
@@ -357,9 +358,13 @@ function createGui() {
     hueMadInputBg.size(40);
     hueMadInputBg.input(updateFlashBg);
 
-    checkSaturation = createCheckbox('MaxSaturation', false);
-    checkSaturation.position(DEFAULT_W + 300, 600);
-    checkSaturation.changed(saturationCheckEvent);
+    satSlider = createSlider(0, 1, 0, 0.05);
+    satSlider.position(DEFAULT_W + 300, 600);
+    satSlider.size(120);
+
+    //checkSaturation = createCheckbox('MaxSaturation', false);
+    //checkSaturation.position(DEFAULT_W + 300, 600);
+    //checkSaturation.changed(saturationCheckEvent);
 
     guiAddText("Glitch:", DEFAULT_W + 50, 640);
     glitchSelect = createSelect(true);
@@ -467,8 +472,8 @@ function draw() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
-        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (isSaturationMax != 0)) {    
-            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, isSaturationMax);
+        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (satSlider.value() != 0)) {    
+            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, satSlider.value());
         }
 
         if (isBgDitherOn) {
