@@ -34,7 +34,7 @@ let bg;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
-let isSaturationMax = false;
+
 let isMixerOn = false;
 
 let glitchEffects = [];
@@ -185,10 +185,6 @@ function matCheckEvent() {
     isMatOn = this.checked();
 }
 
-function saturationCheckEvent() {
-    isSaturationMax = this.checked();
-}
-
 function mixCheckEvent() {
     isMixerOn = this.checked();
 }
@@ -241,7 +237,7 @@ function createGui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput, scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
-    let checkAScii, checkDither, checkBW, checkMat; //checkSaturation;
+    let checkAScii, checkDither, checkBW, checkMat;
     let bgCheckDither, bgCheckBW;
     let checkMixer;
     let glitchTriggerBtn;
@@ -361,10 +357,6 @@ function createGui() {
     satSlider = createSlider(0, 1, 0, 0.05);
     satSlider.position(DEFAULT_W + 300, 600);
     satSlider.size(120);
-
-    //checkSaturation = createCheckbox('MaxSaturation', false);
-    //checkSaturation.position(DEFAULT_W + 300, 600);
-    //checkSaturation.changed(saturationCheckEvent);
 
     guiAddText("Glitch:", DEFAULT_W + 50, 640);
     glitchSelect = createSelect(true);
