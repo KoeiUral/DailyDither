@@ -1,5 +1,6 @@
 const DEFAULT_W = 600;
 const DEFAULT_H = 600;
+let myCanvas;
 
 const MODEL_PATH = '../model/';
 
@@ -17,7 +18,8 @@ let hueOffset = 0;
 let flashOffset = 0;
 let hueOffsetBg = 0;
 let flashOffsetBg = 0;
-let satSlider;
+let fgSatSlider;
+let bgSatSlider;
 
 let depthFg = 4;
 let depthBg = 4;
@@ -85,18 +87,18 @@ function guiAddText(message, posX, posY) {
 }
 
 function updateXrot() {
-    tempVal = this.value();
-    xRot = (tempVal !== NaN) ? tempVal : xRot;
+    let tempVal = parseInt(this.value());
+    xRot = (isNaN(tempVal)) ? xRot : tempVal;
 }
 
 function updateYrot() {
-    tempVal = this.value();
-    yRot = (tempVal !== NaN) ? tempVal : xRot;
+    let tempVal = parseInt(this.value());
+    yRot = (isNaN(tempVal)) ? yRot : tempVal;
 }
 
 function updateZrot() {
-    tempVal = this.value();
-    zRot = (tempVal !== NaN)? tempVal : xRot;
+    let tempVal = parseInt(this.value());
+    zRot = (isNaN(tempVal)) ? zRot : tempVal;
 }
 
 function updateHue() {
@@ -241,144 +243,140 @@ function createGui() {
     let bgCheckDither, bgCheckBW;
     let checkMixer;
     let glitchTriggerBtn;
+
+    /* Hook the canvas */
+    myCanvas.parent('html_canvas');
     
-    guiAddText("Select 3D file form Model Folder", DEFAULT_W + 50, 10);
+    /* ------ FG SECTION ------ */
     file3DSelector = createFileInput(handle3DFile);
-    file3DSelector.position(DEFAULT_W + 50, 50);
-
-    guiAddText("Select Texture form Model Folder", DEFAULT_W + 50, 80);
     textureSelector = createFileInput(handleTexture);
-    textureSelector.position(DEFAULT_W + 50, 120);
 
-    guiAddText("Hue Offset:", DEFAULT_W + 230, 110);
-    hueOffInput = createInput('0');
-    hueOffInput.position(DEFAULT_W + 300, 120);
-    hueOffInput.size(40);
-    hueOffInput.input(updateHue);
-
-    guiAddText("Flashing:", DEFAULT_W + 360, 110);
-    hueMadInput = createInput('0');
-    hueMadInput.position(DEFAULT_W + 420, 120);
-    hueMadInput.size(40);
-    hueMadInput.input(updateFlash);
-
-    guiAddText("X Rot:", DEFAULT_W + 50, 160);
     xRotInput = createInput('0');
-    xRotInput.position(DEFAULT_W + 100, 170);
     xRotInput.size(40);
     xRotInput.input(updateXrot);
 
-    guiAddText("Y Rot:", DEFAULT_W + 160, 160);
     yRotInput = createInput('0');
-    yRotInput.position(DEFAULT_W + 210, 170);
     yRotInput.size(40);
     yRotInput.input(updateYrot);
 
-    guiAddText("Z Rot:", DEFAULT_W + 270, 160);
     zRotInput = createInput('0');
-    zRotInput.position(DEFAULT_W + 320, 170);
     zRotInput.size(40);
     zRotInput.input(updateZrot);
 
-    guiAddText("Scale Factor:", DEFAULT_W + 50, 200);
+    /* TODO: Add translation inputs */
+
     scaleInput = createInput('1');
-    scaleInput.position(DEFAULT_W + 140, 222);
     scaleInput.size(40);
     scaleInput.input(updateScale);
 
-    checkAScii = createCheckbox('ASCII', false);
-    checkAScii.position(DEFAULT_W + 50, 250);
-    checkAScii.changed(asciiCheckEvent);
-
     checkDither = createCheckbox('Dither FG', false);
-    checkDither.position(DEFAULT_W + 50, 275);
     checkDither.changed(ditherCheckEvent);
 
     checkBW = createCheckbox('B&W FG', false);
-    checkBW.position(DEFAULT_W + 50, 300);
     checkBW.changed(bwCheckEvent);
 
-    checkMat = createCheckbox('Material FB', false);
-    checkMat.position(DEFAULT_W + 50, 325);
-    checkMat.changed(matCheckEvent);
+    hueOffInput = createInput('0');
+    hueOffInput.size(40);
+    hueOffInput.input(updateHue);
 
-    guiAddText("PAZZIA Factor:", DEFAULT_W + 50, 350);
+    hueMadInput = createInput('0');
+    hueMadInput.size(40);
+    hueMadInput.input(updateFlash);
+
+    fgSatSlider = createSlider(0, 1, 0, 0.05);
+    fgSatSlider.size(120);
+
+    /* Hook widget to html */
+    file3DSelector.parent('html_file3DSelector');
+    textureSelector.parent('html_fileTexSelector');
+    xRotInput.parent('html_xRotInput');
+    yRotInput.parent('html_yRotInput');
+    zRotInput.parent('html_zRotInput');
+    checkDither.parent('html_fgCheckDither');
+    checkBW.parent('html_fgCheckBW');
+    scaleInput.parent('html_fgScaleInput');
+    hueOffInput.parent('html_fgHueInput');
+    hueMadInput.parent('html_fgFlashInput');
+    fgSatSlider.parent('html_fgSatSlider');
+
+    /* ------ PAZZIA SECTION ------ */
     madInput = createInput('4');
-    madInput.position(DEFAULT_W + 160, 362);
     madInput.size(40);
     madInput.input(updateMadness);
 
-    guiAddText("FG:", DEFAULT_W + 220, 350);
     madInputFg = createInput('4');
-    madInputFg.position(DEFAULT_W + 250, 362);
     madInputFg.size(40);
     madInputFg.input(updateMadnessFg);
 
-    guiAddText("BG:", DEFAULT_W + 300, 350);
     madInputBg = createInput('4');
-    madInputBg.position(DEFAULT_W + 330, 362);
     madInputBg.size(40);
     madInputBg.input(updateMadnessBg);
 
-    gifBtn = createButton('SAVE GIF');
-    gifBtn.position(DEFAULT_W + 50, 402);
-    gifBtn.mousePressed(startSavingGIF);
+    /* Hook widget to html */
+    madInput.parent('html_madInput');
+    madInputFg.parent('html_madInputFg');
+    madInputBg.parent('html_madInputBg');
 
-    guiAddText("Select BG file form Model Folder", DEFAULT_W + 50, 420);
+
+    /* ------ BG SECTION ------ */
     bgSelector = createFileInput(handleBGFile);
-    bgSelector.position(DEFAULT_W + 50, 460);
 
-    guiAddText("BG Scale Factor:", DEFAULT_W + 50, 480);
     bgScaleInput = createInput('1');
-    bgScaleInput.position(DEFAULT_W + 140, 500);
     bgScaleInput.size(40);
     bgScaleInput.input(updateBGScale);
 
     bgCheckDither = createCheckbox('Dither BG', false);
-    bgCheckDither.position(DEFAULT_W + 50, 525);
     bgCheckDither.changed(bgDitherCheckEvent);
 
     bgCheckBW = createCheckbox('B&W BG', false);
-    bgCheckBW.position(DEFAULT_W + 50, 550);
     bgCheckBW.changed(bgBwCheckEvent);
 
-    guiAddText("Hue Offset:", DEFAULT_W + 50, 590);
     hueOffInputBg = createInput('0');
-    hueOffInputBg.position(DEFAULT_W + 120, 600);
     hueOffInputBg.size(40);
     hueOffInputBg.input(updateHueBg);
 
-    guiAddText("Flashing:", DEFAULT_W + 180, 590);
     hueMadInputBg = createInput('0');
-    hueMadInputBg.position(DEFAULT_W + 240, 600);
     hueMadInputBg.size(40);
     hueMadInputBg.input(updateFlashBg);
 
-    satSlider = createSlider(0, 1, 0, 0.05);
-    satSlider.position(DEFAULT_W + 300, 600);
-    satSlider.size(120);
+    bgSatSlider = createSlider(0, 1, 0, 0.05);
+    bgSatSlider.size(120);
 
-    guiAddText("Glitch:", DEFAULT_W + 50, 640);
     glitchSelect = createSelect(true);
-    glitchSelect.position(DEFAULT_W + 100, 640);
     glitchSelect.option('SCAN', 1);
     glitchSelect.option('SCRAMBLE', 2);
     glitchSelect.option('WARP', 3);
 
-    guiAddText("Duration:", DEFAULT_W + 180, 630);
     glitchDurInput = createInput('0');
-    glitchDurInput.position(DEFAULT_W + 240, 640);
     glitchDurInput.size(40);
     glitchPreCheck = createCheckbox('PreGlitch', true);
-    glitchPreCheck.position(DEFAULT_W + 180, 680);
     glitchPreCheck.changed(preGlitchCheckEvent);
     glitchTriggerBtn = createButton('TRIGGER');
-    glitchTriggerBtn.position(DEFAULT_W + 240, 720);
     glitchTriggerBtn.mousePressed(startGlitch);
 
+    /* Hook widget to html */
+    bgSelector.parent('html_bgSelector');
+    bgCheckDither.parent('html_bgCheckDither');
+    bgCheckBW.parent('html_bgCheckBW');
+    bgScaleInput.parent('html_bgScaleInput');
+    hueOffInputBg.parent('html_bgHueInput');
+    hueMadInputBg.parent('html_bgFlashInput');
+    bgSatSlider.parent('html_bgSatSlider');
+    glitchSelect.parent('html_bgGlitchSelect');
+    glitchDurInput.parent('html_bgGlitchDurInput');
+    glitchPreCheck.parent('html_bgGlitchPreCheck');
+    glitchTriggerBtn.parent('html_bgGlitchTriggerBtn');
+
+    /* ------ EXPORT SECTION ------ */
+    gifBtn = createButton('SAVE GIF');
+    gifBtn.mousePressed(startSavingGIF);
+
     checkMixer = createCheckbox('Enable CH mixer', false);
-    checkMixer.position(DEFAULT_W + 50, 800);
     checkMixer.changed(mixCheckEvent);
+
+    /* Hook widget to html */
+    gifBtn.parent('html_gifBtn');
+    checkMixer.parent('html_checkMixer');
 }
 
 
@@ -388,7 +386,7 @@ function preload() {
 
 function setup() {
     pixelDensity(1);
-    createCanvas(DEFAULT_W, DEFAULT_H);
+    myCanvas = createCanvas(DEFAULT_W, DEFAULT_H);
     _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
     _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
 
@@ -464,8 +462,8 @@ function draw() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
-        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (satSlider.value() != 0)) {    
-            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, satSlider.value());
+        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (bgSatSlider.value() != 0)) {    
+            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, bgSatSlider.value());
         }
 
         if (isBgDitherOn) {
@@ -504,8 +502,8 @@ function draw() {
 
         if(isBWOn) {
             image2D.filter(GRAY); 
-        } else if (((hueOffset % 360) != 0) || (flashOffset != 0)) {
-            ShiftHue(image2D, hueOffset, flashOffset, false);
+        } else if (((hueOffset % 360) != 0) || (flashOffset != 0) || (fgSatSlider.value() != 0)) {  
+            ShiftHue(image2D, hueOffset, flashOffset, fgSatSlider.value());
         }
 
         if (isDitherOn) {

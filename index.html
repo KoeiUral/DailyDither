@@ -6,16 +6,126 @@
   <title>-Daily Fucking Dither-</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.1/p5.js"></script>
   <script src="./lib/open.simplex.noise.js"></script>
+  <script src="./lib/CCapture.all.min.js"></script>
   <script src="./lib/myMath.js"></script>
   <script src="./lib/graphlib.js"></script>
-  <!--<script src="./lib/p5.sound.min.js"></script>-->
-
-  <!--<link rel="stylesheet" type="text/css" href="style.css">-->
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
 <body style="background-color: rgb(65, 66, 66);">
-  <!--<script src="./test.js"></script>-->
   <script src="./gui.js"></script>
+
+  <div class="flex-container_H">
+    <div id="html_canvas"></div>
+
+    <div class="flex-container_V" id="gui">
+      <div class="fg">Fg
+        <div class="flex-container_VIN" id="gui">
+          <div class="flex-container_H">
+            <div>3D Model Path:</div>
+            <div id="html_file3DSelector"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Texture Path:</div>
+            <div id="html_fileTexSelector"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Rot X:</div>
+            <div id="html_xRotInput"></div>
+            <div>Rot Y:</div>
+            <div id="html_yRotInput"></div>
+            <div>Rot Z:</div>
+            <div id="html_zRotInput"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Point 1 (x, y):</div>
+            <div id="html_xP1Input"></div>
+            <div id="html_yP1tInput"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Point 2 (x, y):</div>
+            <div id="html_xP2Input"></div>
+            <div id="html_yP2tInput"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Point 3 (x, y):</div>
+            <div id="html_xP3Input"></div>
+            <div id="html_yP3tInput"></div>
+          </div>
+          <div class="flex-container_H">
+            <div id="html_fgCheckDither"></div>
+            <div id="html_fgCheckBW"></div>
+            <div>Scale Factor:</div>
+            <div id="html_fgScaleInput"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Hue Offset:</div>
+            <div id="html_fgHueInput"></div>
+            <div>Flashing:</div>
+            <div id="html_fgFlashInput"></div>
+            <div>Sat:</div>
+            <div id="html_fgSatSlider"></div>
+          </div>
+        </div>
+      </div>
+      <div class="pazzia">Pazzia
+        <div class="flex-container_H">
+          <div>Overal shift:</div>
+          <div id="html_madInput"></div>
+          <div>FG shift:</div>
+          <div id="html_madInputFg"></div>
+          <div>BG shift:</div>
+          <div id="html_madInputBg"></div>
+        </div>
+      </div>    
+      <div class="bg">Bg
+        <div class="flex-container_VIN" id="gui">
+          <div class="flex-container_H">
+            <div>BG Path:</div>
+            <div id="html_bgSelector"></div>
+          </div>
+          <div class="flex-container_H">
+            <div id="html_bgCheckDither"></div>
+            <div id="html_bgCheckBW"></div>
+            <div>Scale Factor:</div>
+            <div id="html_bgScaleInput"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Hue Offset:</div>
+            <div id="html_bgHueInput"></div>
+            <div>Flashing:</div>
+            <div id="html_bgFlashInput"></div>
+            <div>Sat:</div>
+            <div id="html_bgSatSlider"></div>
+          </div>
+          <div class="flex-container_H">
+            <div>Glitch:</div>
+            <div id="html_bgGlitchSelect"></div>
+            <div>Duration:</div>
+            <div id="html_bgGlitchDurInput"></div>
+            <div id="html_bgGlitchPreCheck"></div>
+            <div id="html_bgGlitchTriggerBtn"></div>
+          </div>
+        </div>
+      </div>
+      <div class="gen">Export
+        <div class="flex-container_VIN" id="gui">
+          <div class="flex-container_H">
+            <div id="html_checkMixer"></div>
+            <div id="html_gifBtn"></div>
+          </div>
+        </div> 
+      </div>
+    </div>
+  </div>
+  
+ 
+  
+  
+
+
+
+
 </body>
 
 </html>
