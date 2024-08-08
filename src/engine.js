@@ -114,7 +114,7 @@ function init_engine () {
     //_gifGraph = createGraphics(DEFAULT_W, DEFAULT_H);
 
 
-    gifCapturer = new CCapture( { format: 'gif', workersPath: 'lib/' } )
+    //gifCapturer = new CCapture( { format: 'gif', workersPath: 'lib/' } )
 
     initFonts(fontImage);
     initNoise();
