@@ -24,6 +24,11 @@ let depthBg = 4;
 
 let _3dGraph;
 let _2dGraph;
+let gifCapturer;
+let gifHyperPeriod = -1;
+let gifDuration = 0;
+let gifStarted = false;
+//let _gifGraph;
 
 let image2D;
 let finalImg;
@@ -106,6 +111,10 @@ function init_engine () {
 
     _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
     _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
+    //_gifGraph = createGraphics(DEFAULT_W, DEFAULT_H);
+
+
+    gifCapturer = new CCapture( { format: 'gif', workersPath: 'lib/' } )
 
     initFonts(fontImage);
     initNoise();
@@ -148,10 +157,14 @@ function startSavingGIF() {
     let yPeriod = (yRot != 0) ? floor(2 * PI / yRot) : 1;
     let zPeriod = (zRot != 0) ? floor(2 * PI / zRot) : 1;
 
-    let hyperPeriod = lcm3(xPeriod, yPeriod, zPeriod);
-    //console.log("Start saving gif, hyper period: " + hyperPeriod);
+    gifHyperPeriod = (gifDuration != 0) ? gifDuration : lcm3(xPeriod, yPeriod, zPeriod);
+    //if (gifStarted == false) {
+    //   gifStarted = true;
+    //    gifCapturer.start();
+    //}
 
-    saveGif('gifMatta', hyperPeriod, {  units: 'frames' });
+    //console.log("Start saving gif, hyper period: " + hyperPeriod);
+    saveGif('gifMatta', gifHyperPeriod, {  units: 'frames' });
 }
 
 function render() {
@@ -242,4 +255,18 @@ function render() {
         mixImage = mixChannelsNoise(finalFg, finalBg, mixImage);
         image(mixImage, 0, 0, DEFAULT_W, DEFAULT_H);
     }
+
+    /* Save the GIFs
+    if (gifHyperPeriod > 0) {
+        //let smallImg = get();
+        //.resize(DEFAULT_W / 2, DEFAULT_H / 2);
+
+        gifCapturer.capture(document.getElementById('defaultCanvas0'));
+        gifHyperPeriod--;
+    } else if (gifHyperPeriod == 0) {
+        gifCapturer.stop();
+        gifCapturer.save();
+        gifHyperPeriod--;
+    }
+    */
 }

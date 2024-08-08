@@ -72,8 +72,6 @@ function updateFlashBg() {
     }
 }
 
-
-
 function updateScale() {
     tempVal = this.value();
     scaleF = ((tempVal !== NaN) && (tempVal >= 1))  ? tempVal : scaleF;
@@ -105,11 +103,6 @@ function updateMadnessBg() {
     }
 }
 
-
-//function asciiCheckEvent() {
-//    isAsciiOn = this.checked();
-//}
-
 function ditherCheckEvent() {
     isDitherOn = this.checked();
 }
@@ -126,10 +119,6 @@ function bgBwCheckEvent() {
     isBgBWOn = this.checked();
 }
 
-//function matCheckEvent() {
-//   isMatOn = this.checked();
-//}
-
 function mixCheckEvent() {
     isMixerOn = this.checked();
 }
@@ -138,47 +127,11 @@ function preGlitchCheckEvent() {
     isPreGlitchOn = this.checked();
 }
 
-/*
-function startGlitch() {
-    glitchEffects.length = 0;
-    glitchEffects = glitchSelect.selected();
-
-    for (let i = 0; i < glitchEffects.length; i++) {
-        if (glitchEffects[i] == 1) {
-            glitchScanDir = random(1);
-            glitchScanX = floor(random(DEFAULT_W / bgScaleF));
-            glitchScanY = floor(random(DEFAULT_H / bgScaleF));
-        } else if (glitchEffects[i] == 2) {
-            glitchHoles.length = 0;
-            let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
-    
-            for (let i = 0; i < N; i++) {
-                let srcX = floor(random(DEFAULT_W / bgScaleF));
-                let srcY = floor(random(DEFAULT_H / bgScaleF));
-                let srcW = floor(random(DEFAULT_W / bgScaleF));
-                let srcH = floor(random(DEFAULT_H / bgScaleF));
-                
-                let dstX = floor(random(DEFAULT_W / bgScaleF));
-                let dstY = floor(random(DEFAULT_H / bgScaleF));
-                let dstW = floor(random(DEFAULT_W / bgScaleF));
-                let dstH = floor(random(DEFAULT_H / bgScaleF));
-    
-                glitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
-                                   dx: dstX, dy: dstY , dw: dstW, dh: dstH});
-            }
-        } else if (glitchEffects[i] == 3) {
-            glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
-        }
-    }
-
-
-
-    //glitchType = glitchSelect.selected();
-    let tempVal = parseInt(glitchDurInput.value());
-    glitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
-    console.log("Triggered effects for frames: " +  glitchFrames);
+function updateGifPeriof() {
+    let tempVal = parseInt(this.value());
+    gifDuration = (isNaN(tempVal)) ? 0 : tempVal;
 }
-*/
+
 
 /**
  * Create the Gui: create widgets and set them up
@@ -318,13 +271,18 @@ function create_gui() {
     glitchTriggerBtn.parent('html_bgGlitchTriggerBtn');
 
     /* ------ EXPORT SECTION ------ */
-    gifBtn = createButton('SAVE GIF');
-    gifBtn.mousePressed(startSavingGIF);
-
     checkMixer = createCheckbox('Enable CH mixer', false);
     checkMixer.changed(mixCheckEvent);
+
+    gifDurationInput =  createInput('0');
+    gifDurationInput.size(40);
+    gifDurationInput.input(updateGifPeriof);
+
+    gifBtn = createButton('SAVE GIF');
+    gifBtn.mousePressed(startSavingGIF);
 
     /* Hook widget to html */
     gifBtn.parent('html_gifBtn');
     checkMixer.parent('html_checkMixer');
+    gifDurationInput.parent('html_gifDurInput');
 }
