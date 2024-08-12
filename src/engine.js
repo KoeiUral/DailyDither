@@ -120,22 +120,22 @@ function startGlitch() {
 function initTargets () {
     targetNbr = 3;
 
-    for (let i=0; i< targetNbr; i++) {
-        targets.push(createVector(DEFAULT_W / 2, DEFAULT_H / 2, 0));
+    for (let i = 0; i < targetNbr; i++) {
+        targets.push(createVector(0, 0, 0));
     }
 
-    currentPos = createVector(DEFAULT_W / 2, DEFAULT_H / 2, 0);
+    currentPos = createVector(0, 0, 0);
 }
 
 function updateTranslationTargets(coordId, value) {
     let pointId = parseInt(coordId / 3);
 
     if ((coordId % 3) === 0) {
-        targets[pointId].z = value - DEFAULT_W / 2; // due to 90 deg rotation for the model
+        targets[pointId].x = value - DEFAULT_W / 2;
     } else if ((coordId % 3) === 1) {
         targets[pointId].y = DEFAULT_H / 2 - value;
     } else {
-        targets[pointId].x = value
+        targets[pointId].z = value
     }
 }
 
@@ -157,14 +157,15 @@ function compute3D() {
     //_3dGraph.pointLight(255, 255, 255, 100, 100, 100);
 
     _3dGraph.scale(3 / 800 * DEFAULT_W); // Scaled to make model fit into canvas ???
-    _3dGraph.rotateX(PI);
-    _3dGraph.rotateY(PI/2);
 
     /* Apply translation */
     currentPos = p5.Vector.lerp(currentPos, targets[targetIndex], 0.1);
     _3dGraph.translate(currentPos);
     checkTargetChange();
 
+    /* Apply default (?) + custom rotation */
+    _3dGraph.rotateX(PI);
+    _3dGraph.rotateY(PI/2);
     _3dGraph.rotateX(frameCount * xRot);
     _3dGraph.rotateY(frameCount * yRot);
     _3dGraph.rotateZ(frameCount * zRot);
