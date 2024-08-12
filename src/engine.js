@@ -11,6 +11,18 @@ let myModel;
 let xRot = 0;
 let yRot = 0;
 let zRot = 0;
+let transPoint1x = 0;
+let transPoint1y = 0;
+let transPoint2x = 0;
+let transPoint2y = 0;
+let transPoint3x = 0;
+let transPoint3y = 0;
+
+let targets = [];
+let targetNbr = 0;
+let currentPos;
+let targetIndex = 0;
+
 let scaleF = 1;
 let bgScaleF = 1;
 
@@ -105,19 +117,35 @@ function startGlitch() {
     console.log("Triggered effects for frames: " +  glitchFrames);
 }
 
-function init_engine () {
-    pixelDensity(1);
-    myCanvas = createCanvas(DEFAULT_W, DEFAULT_H);
+function initTargets () {
+    targetNbr = 3;
 
-    _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
-    _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
-    //_gifGraph = createGraphics(DEFAULT_W, DEFAULT_H);
+    for (let i=0; i< targetNbr; i++) {
+        targets.push(createVector(DEFAULT_W / 2, DEFAULT_H / 2, 0));
+    }
 
+    currentPos = createVector(DEFAULT_W / 2, DEFAULT_H / 2, 0);
+}
 
-    //gifCapturer = new CCapture( { format: 'gif', workersPath: 'lib/' } )
+function updateTranslationTargets(coordId, value) {
+    let pointId = parseInt(coordId / 3);
 
-    initFonts(fontImage);
-    initNoise();
+    if ((coordId % 3) === 0) {
+        targets[pointId].z = value - DEFAULT_W / 2; // due to 90 deg rotation for the model
+    } else if ((coordId % 3) === 1) {
+        targets[pointId].y = DEFAULT_H / 2 - value;
+    } else {
+        targets[pointId].x = value
+    }
+}
+
+function checkTargetChange() {
+
+    let diff = p5.Vector.sub(currentPos, targets[targetIndex]);
+    if (diff.mag() < 5) {
+        /* Move to the next target in the array */
+        targetIndex = (targetIndex + 1) % 3;
+    }
 }
 
 function compute3D() {
@@ -128,9 +156,15 @@ function compute3D() {
     //_3dGraph.lights();
     //_3dGraph.pointLight(255, 255, 255, 100, 100, 100);
 
-    _3dGraph.scale(3 / 800 * DEFAULT_W); // Scaled to make model fit into canvas
+    _3dGraph.scale(3 / 800 * DEFAULT_W); // Scaled to make model fit into canvas ???
     _3dGraph.rotateX(PI);
     _3dGraph.rotateY(PI/2);
+
+    /* Apply translation */
+    currentPos = p5.Vector.lerp(currentPos, targets[targetIndex], 0.1);
+    _3dGraph.translate(currentPos);
+    checkTargetChange();
+
     _3dGraph.rotateX(frameCount * xRot);
     _3dGraph.rotateY(frameCount * yRot);
     _3dGraph.rotateZ(frameCount * zRot);
@@ -165,6 +199,21 @@ function startSavingGIF() {
 
     //console.log("Start saving gif, hyper period: " + hyperPeriod);
     saveGif('gifMatta', gifHyperPeriod, {  units: 'frames' });
+}
+
+
+function init_engine () {
+    pixelDensity(1);
+    myCanvas = createCanvas(DEFAULT_W, DEFAULT_H);
+
+    _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
+    _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
+    //_gifGraph = createGraphics(DEFAULT_W, DEFAULT_H);
+    //gifCapturer = new CCapture( { format: 'gif', workersPath: 'lib/' } )
+
+    initFonts(fontImage);
+    initNoise();
+    initTargets();
 }
 
 function render() {
