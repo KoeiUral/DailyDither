@@ -4,6 +4,7 @@
  */
 let fgSatSlider;
 let bgSatSlider;
+let mouseClickEnable = false;
 
 
 const WIDGET_SIZE = 50;
@@ -128,7 +129,17 @@ function updateZP3() {
 }
 
 
+function checkPointMouse() {
+    mouseClickEnable = this.checked();
+}
 
+function updateTrSpeed() {
+    targetSpeed = this.value();
+}
+
+function clearTargets() {
+    clearTransalationTargets();
+}
 
 
 
@@ -229,7 +240,8 @@ function create_gui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput;
     let p1Check, p2Check, p3Check;
-    let xP1Input, yP1Input, zP1Input, xP2Input, yP2Input, zP2Input, xP3Input, yP3Input, zP3Input; 
+    let xP1Input, yP1Input, zP1Input, xP2Input, yP2Input, zP2Input, xP3Input, yP3Input, zP3Input;
+    let pointMouseCheck, trSpeedSlider;
     let scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
     let checkDither, checkBW;
@@ -247,11 +259,9 @@ function create_gui() {
     xRotInput = createInput('0');
     xRotInput.size(WIDGET_SIZE);
     xRotInput.input(updateXrot);
-
     yRotInput = createInput('0');
     yRotInput.size(WIDGET_SIZE);
     yRotInput.input(updateYrot);
-
     zRotInput = createInput('0');
     zRotInput.size(WIDGET_SIZE);
     zRotInput.input(updateZrot);
@@ -292,24 +302,28 @@ function create_gui() {
     zP3Input.size(WIDGET_SIZE);
     zP3Input.input(updateZP3);
 
+    pointMouseCheck = createCheckbox('Enable mouse points', false);
+    pointMouseCheck.changed(checkPointMouse); 
+    pointClearBtn = createButton('Clear Points');
+    pointClearBtn.mousePressed(clearTargets);
+    trSpeedSlider = createSlider(0.05, 0.8, 0.1, 0.01);
+    trSpeedSlider.size(120);
+    trSpeedSlider.changed(updateTrSpeed);
+
     scaleInput = createInput('1');
     scaleInput.size(WIDGET_SIZE);
     scaleInput.input(updateScale);
-
     checkDither = createCheckbox('Dither FG', false);
     checkDither.changed(ditherCheckEvent);
-
     checkBW = createCheckbox('B&W FG', false);
     checkBW.changed(bwCheckEvent);
 
     hueOffInput = createInput('0');
     hueOffInput.size(WIDGET_SIZE);
     hueOffInput.input(updateHue);
-
     hueMadInput = createInput('0');
     hueMadInput.size(WIDGET_SIZE);
     hueMadInput.input(updateFlash);
-
     fgSatSlider = createSlider(0, 1, 0, 0.05);
     fgSatSlider.size(120);
 
@@ -331,6 +345,9 @@ function create_gui() {
     xP3Input.parent('html_xP3Input');
     yP3Input.parent('html_yP3Input');
     zP3Input.parent('html_zP3Input');
+    pointMouseCheck.parent('html_pointMouseCheck');
+    pointClearBtn.parent('html_pointClearBtn');
+    trSpeedSlider.parent('html_trSpeedSlider');
     checkDither.parent('html_fgCheckDither');
     checkBW.parent('html_fgCheckBW');
     scaleInput.parent('html_fgScaleInput');

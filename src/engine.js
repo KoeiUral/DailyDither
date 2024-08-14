@@ -11,15 +11,6 @@ let myModel;
 let xRot = 0;
 let yRot = 0;
 let zRot = 0;
-/*
-let transPoint1x = 0;
-let transPoint1y = 0;
-let transPoint2x = 0;
-let transPoint2y = 0;
-let transPoint3x = 0;
-let transPoint3y = 0;
-*/
-
 
 const MAX_TARGETS = 3;
 let targets = [];
@@ -27,6 +18,7 @@ let targetsInUse = [];
 let targetUsed = 0;
 let currentPos;
 let targetIndex = 0;
+let targetSpeed = 0.1;
 
 let scaleF = 1;
 let bgScaleF = 1;
@@ -138,10 +130,23 @@ function updateTranslationTargets(coordId, value) {
     if ((coordId % 3) === 0) {
         targets[pointId].x = value - DEFAULT_W / 2;
     } else if ((coordId % 3) === 1) {
-        targets[pointId].y = DEFAULT_H / 2 - value;
+        targets[pointId].y = value - DEFAULT_H / 2;//DEFAULT_H / 2 - value;
     } else {
         targets[pointId].z = value
     }
+}
+
+function addTransaltionTarget(xPoint, yPoint, zPoint) {
+    targets.push(createVector(xPoint - DEFAULT_W / 2, yPoint - DEFAULT_H / 2, zPoint));
+    targetsInUse.push(true);
+    targetUsed++;
+}
+
+function clearTransalationTargets() {
+    targets.length = 0;
+    targetsInUse.length = 0;
+    targetUsed = 0;
+    targetIndex = 0;
 }
 
 function checkTargetChange() {
@@ -150,7 +155,7 @@ function checkTargetChange() {
     if (diff.mag() < 5) {
         /* Move to the next target in use within the array */
         do {
-            targetIndex = (targetIndex + 1) % MAX_TARGETS;
+            targetIndex = (targetIndex + 1) % targets.length;
         } while (targetsInUse[targetIndex] == false);       
     }
 }
@@ -165,7 +170,7 @@ function compute3D() {
 
     /* Apply translation */
     if (targetUsed > 1) {
-        currentPos = p5.Vector.lerp(currentPos, targets[targetIndex], 0.1);
+        currentPos = p5.Vector.lerp(currentPos, targets[targetIndex], targetSpeed);
         _3dGraph.translate(currentPos);
         checkTargetChange();
     }
