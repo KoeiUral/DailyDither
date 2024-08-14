@@ -252,6 +252,10 @@ function mixCheckEvent() {
     isMixerOn = this.checked();
 }
 
+function preGlitchFgCheckEvent() {
+    isPreGlitchOnFg = this.checked();
+}
+
 function preGlitchCheckEvent() {
     isPreGlitchOn = this.checked();
 }
@@ -374,6 +378,8 @@ function create_gui() {
     fgGlitchSelect.option('BURN', 4);
     fgGlitchDurInput = createInput('0');
     fgGlitchDurInput.size(WIDGET_SIZE);
+    fgGlitchPreCheck = createCheckbox('PreGlitch', true);
+    fgGlitchPreCheck.changed(preGlitchFgCheckEvent);
     fgGlitchTriggerBtn = createButton('TRIGGER');
     fgGlitchTriggerBtn.mousePressed(startFgGlitch);
 
@@ -407,6 +413,7 @@ function create_gui() {
     fgSatSlider.parent('html_fgSatSlider');
     fgGlitchSelect.parent('html_fgGlitchSelect');
     fgGlitchDurInput.parent('html_fgGlitchDurInput');
+    fgGlitchPreCheck.parent('html_fgGlitchPreCheck');
     fgGlitchTriggerBtn.parent('html_fgGlitchTriggerBtn');
 
 
@@ -456,7 +463,6 @@ function create_gui() {
     glitchSelect.option('SCRAMBLE', 2);
     glitchSelect.option('WARP', 3);
     glitchSelect.option('BURN', 4);
-
     glitchDurInput = createInput('0');
     glitchDurInput.size(WIDGET_SIZE);
     glitchPreCheck = createCheckbox('PreGlitch', true);

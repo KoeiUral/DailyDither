@@ -57,6 +57,7 @@ let fgGlitchEffects = [];
 let fgGlitchFrames = 0;
 let fgGlitchScanDir, fgGlitchScanX, fgGlitchScanY;
 let fgGlitchDurInput, fgGlitchSelect;  // TODO: remove GUI dependency
+let isPreGlitchOnFg = true;
 let fgGlitchHoles = [];
 let fgGlitchWarpOffset = 0;
 let fgGlitchBurnThresh = [];
@@ -137,28 +138,28 @@ function startFgGlitch() {
     for (let i = 0; i < fgGlitchEffects.length; i++) {
         if (fgGlitchEffects[i] == 1) {
             fgGlitchScanDir = random(1);
-            fgGlitchScanX = floor(random(DEFAULT_W / bgScaleF));
-            fgGlitchScanY = floor(random(DEFAULT_H / bgScaleF));
+            fgGlitchScanX = floor(random(DEFAULT_W / scaleF));
+            fgGlitchScanY = floor(random(DEFAULT_H / scaleF));
         } else if (fgGlitchEffects[i] == 2) {
             fgGlitchHoles.length = 0;
             let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
     
             for (let i = 0; i < N; i++) {
-                let srcX = floor(random(DEFAULT_W / bgScaleF));
-                let srcY = floor(random(DEFAULT_H / bgScaleF));
-                let srcW = floor(random(DEFAULT_W / bgScaleF));
-                let srcH = floor(random(DEFAULT_H / bgScaleF));
+                let srcX = floor(random(DEFAULT_W / scaleF));
+                let srcY = floor(random(DEFAULT_H / scaleF));
+                let srcW = floor(random(DEFAULT_W / scaleF));
+                let srcH = floor(random(DEFAULT_H / scaleF));
                 
-                let dstX = floor(random(DEFAULT_W / bgScaleF));
-                let dstY = floor(random(DEFAULT_H / bgScaleF));
-                let dstW = floor(random(DEFAULT_W / bgScaleF));
-                let dstH = floor(random(DEFAULT_H / bgScaleF));
+                let dstX = floor(random(DEFAULT_W / scaleF));
+                let dstY = floor(random(DEFAULT_H / scaleF));
+                let dstW = floor(random(DEFAULT_W / scaleF));
+                let dstH = floor(random(DEFAULT_H / scaleF));
     
                 fgGlitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
                                      dx: dstX, dy: dstY , dw: dstW, dh: dstH});
             }
         } else if (fgGlitchEffects[i] == 3) {
-            fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
+            fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scaleF));
         } else if (fgGlitchEffects[i] == 4) {
             fgGlitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
         }
@@ -278,6 +279,42 @@ function startSavingWEBM() {
     }
 }
 
+function glitchBg(image) {
+    if (glitchFrames > 0) {
+        for (let i = 0; i < glitchEffects.length; i++) {
+            if (glitchEffects[i] == 1) {
+                GlitchScanner(image,  glitchScanDir, glitchScanX, glitchScanY);
+            } else if (glitchEffects[i] == 2) {
+                GlitchScramble(image, glitchHoles, 1);
+            } else if (glitchEffects[i] == 3) {
+                GlitchWarp(image, glitchWarpOffset);
+            } else if (glitchEffects[i]  == 4) {
+                GlitchPixelBurn(image, glitchBurnThresh);
+            }
+        }
+        glitchFrames--;
+    }
+}
+
+function glitchFg(image) {
+    if (fgGlitchFrames > 0) {
+        for (let i = 0; i < fgGlitchEffects.length; i++) {
+            if (fgGlitchEffects[i] == 1) {
+                GlitchScanner(image,  fgGlitchScanDir, fgGlitchScanX * scaleF, fgGlitchScanY * scaleF);
+            } else if (fgGlitchEffects[i]  == 2) {
+                GlitchScramble(image, fgGlitchHoles, scaleF);
+            } else if (fgGlitchEffects[i]  == 3) {
+                GlitchWarp(image, fgGlitchWarpOffset * scaleF);
+            } else if (fgGlitchEffects[i]  == 4) {
+                GlitchPixelBurn(image, fgGlitchBurnThresh);
+            }
+        }
+
+        fgGlitchFrames--;
+    }
+}
+
+
 
 function init_engine () {
     pixelDensity(1);
@@ -300,23 +337,13 @@ function render() {
 
     if(bgReady) {
         let bgImage = compute2D();
+
+        if (isPreGlitchOn === true) {
+            glitchBg(bgImage);
+        }
+
         bgImage.resize(DEFAULT_W / bgScaleF, DEFAULT_H / bgScaleF);
 
-        if ((isPreGlitchOn === true) && (glitchFrames > 0)) {
-            for (let i = 0; i < glitchEffects.length; i++) {
-                if (glitchEffects[i] == 1) {
-                    GlitchScanner(bgImage,  glitchScanDir, glitchScanX, glitchScanY);
-                } else if (glitchEffects[i] == 2) {
-                    GlitchScramble(bgImage, glitchHoles, 1);
-                } else if (glitchEffects[i] == 3) {
-                    GlitchWarp(bgImage, glitchWarpOffset);
-                } else if (glitchEffects[i]  == 4) {
-                    GlitchPixelBurn(bgImage, glitchBurnThresh);
-                }
-            }
-            glitchFrames--;
-        }
-      
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
         } else if (((hueOffsetBg % 360) != 0) || (hueIncBg != 0) || (flashOffsetBg != 0) || (satLevelBg != 0)) {
@@ -328,23 +355,10 @@ function render() {
             ditherIt(bgImage, isBgBWOn, depthBg); 
         }
 
-
         finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
 
-        if ((isPreGlitchOn === false) && (glitchFrames > 0)) {
-            for (let i = 0; i < glitchEffects.length; i++) {
-                if (glitchEffects[i] == 1) {
-                    GlitchScanner(finalBg,  glitchScanDir, glitchScanX * bgScaleF, glitchScanY * bgScaleF);
-                } else if (glitchEffects[i]  == 2) {
-                    GlitchScramble(finalBg, glitchHoles, bgScaleF);
-                } else if (glitchEffects[i]  == 3) {
-                    GlitchWarp(finalBg, glitchWarpOffset * bgScaleF);
-                } else if (glitchEffects[i]  == 4) {
-                    GlitchPixelBurn(finalBg, glitchBurnThresh);
-                }
-            }
-
-            glitchFrames--;
+        if (isPreGlitchOn === false) {
+            glitchBg(finalBg);
         }
 
         if (isMixerOn === false) {
@@ -355,9 +369,13 @@ function render() {
     if (modelReady) {
         let image2D = compute3D();
 
+        if (isPreGlitchOnFg === true) {
+            glitchFg(image2D);
+        }
+
         // Downscale the image
         image2D.resize(DEFAULT_W / scaleF, DEFAULT_H / scaleF);
-  
+        addAlpha(image2D);
 
         if(isBWOn) {
             image2D.filter(GRAY); 
@@ -370,25 +388,12 @@ function render() {
             ditherIt(image2D, isBWOn, depthFg); 
         }
 
-        if (fgGlitchFrames > 0) {
-            for (let i = 0; i < fgGlitchEffects.length; i++) {
-                if (fgGlitchEffects[i] == 1) {
-                    GlitchScanner(image2D,  fgGlitchScanDir, fgGlitchScanX * scaleF, fgGlitchScanY * scaleF);
-                } else if (fgGlitchEffects[i]  == 2) {
-                    GlitchScramble(image2D, fgGlitchHoles, scaleF);
-                } else if (fgGlitchEffects[i]  == 3) {
-                    GlitchWarp(image2D, fgGlitchWarpOffset * scaleF);
-                } else if (fgGlitchEffects[i]  == 4) {
-                    GlitchPixelBurn(image2D, fgGlitchBurnThresh);
-                }
-            }
-
-            fgGlitchFrames--;
-        }
-
         // Upscale back the image
-        addAlpha(image2D);
         finalFg = upScale(image2D, finalFg, scaleF, depthFg);
+
+        if (isPreGlitchOnFg === false) {
+            glitchFg(finalFg);
+        }
 
         if (isMixerOn === false) {
             image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
