@@ -6,6 +6,7 @@ const MODEL_PATH = '../model/';
 let myCanvas;
 let modelReady = false;
 let textureReady = false;
+let myTexIsVideo = false;
 let bgReady = false;
 let myModel;
 let xRot = 0;
@@ -69,6 +70,11 @@ function onModelLoaded() {
 
 function onTextureLoaded() {
     textureReady = true;
+
+    if (myTexIsVideo) {
+        myTexture.hide();
+        myTexture.loop();
+    }
 }
 
 function onBGLoaded() {

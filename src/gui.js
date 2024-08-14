@@ -18,7 +18,17 @@ function handle3DFile(file) {
 
 function handleTexture(file) {
     textureReady = false;
-    myTexture = loadImage(MODEL_PATH + file.name, onTextureLoaded);
+    let fileExt = file.name.split('.').pop();
+
+    if ((fileExt === 'jpg') || (fileExt === 'jpeg') || (fileExt === 'png') || (fileExt === 'gif')) {
+        myTexture = loadImage(MODEL_PATH + file.name, onTextureLoaded);
+        myTexIsVideo = false;
+    } else if ((fileExt === 'mp4') || (fileExt === 'avi') || (fileExt === 'mov') || (fileExt === 'webm') || (fileExt === 'mkv')) {
+        myTexture = createVideo(MODEL_PATH + file.name, onTextureLoaded);
+        myTexIsVideo = true;    
+    }
+
+
 }
 
 function handleBGFile(file) {
