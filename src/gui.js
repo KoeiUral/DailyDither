@@ -277,9 +277,10 @@ function create_gui() {
     let fgSatSlider, bgSatSlider;
     let checkDither, checkBW;
     let bgCheckDither, bgCheckBW;
-    let gifDurationInput;
-    let glitchTriggerBtn;
+    let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
+    let glitchPreCheck, glitchTriggerBtn;
     let checkMixer;
+    let gifDurationInput;
     let gifBtn, webmBtn;
 
 
@@ -365,6 +366,17 @@ function create_gui() {
     fgSatSlider.size(120);
     fgSatSlider.changed(updateFgSaturation);
 
+
+    fgGlitchSelect = createSelect(true);
+    fgGlitchSelect.option('SCAN', 1);
+    fgGlitchSelect.option('SCRAMBLE', 2);
+    fgGlitchSelect.option('WARP', 3);
+    fgGlitchSelect.option('BURN', 4);
+    fgGlitchDurInput = createInput('0');
+    fgGlitchDurInput.size(WIDGET_SIZE);
+    fgGlitchTriggerBtn = createButton('TRIGGER');
+    fgGlitchTriggerBtn.mousePressed(startFgGlitch);
+
     /* Hook widget to html */
     file3DSelector.parent('html_file3DSelector');
     textureSelector.parent('html_fileTexSelector');
@@ -393,6 +405,10 @@ function create_gui() {
     hueIncInput.parent('html_fgHueIncInput');
     hueMadInput.parent('html_fgFlashInput');
     fgSatSlider.parent('html_fgSatSlider');
+    fgGlitchSelect.parent('html_fgGlitchSelect');
+    fgGlitchDurInput.parent('html_fgGlitchDurInput');
+    fgGlitchTriggerBtn.parent('html_fgGlitchTriggerBtn');
+
 
     /* ------ PAZZIA SECTION ------ */
     madInput = createInput('4');

@@ -51,13 +51,20 @@ let bg;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
-
 let isMixerOn = false;
+
+let fgGlitchEffects = [];
+let fgGlitchFrames = 0;
+let fgGlitchScanDir, fgGlitchScanX, fgGlitchScanY;
+let fgGlitchDurInput, fgGlitchSelect;  // TODO: remove GUI dependency
+let fgGlitchHoles = [];
+let fgGlitchWarpOffset = 0;
+let fgGlitchBurnThresh = [];
 
 let glitchEffects = [];
 let glitchFrames = 0;
 let glitchScanDir, glitchScanX, glitchScanY;
-let glitchDurInput, glitchSelect;
+let glitchDurInput, glitchSelect; // TODO: remove GUI dependency
 let isPreGlitchOn = true;
 let glitchHoles = [];
 let glitchWarpOffset = 0;
@@ -86,7 +93,7 @@ function onBGLoaded() {
 
 function startGlitch() {
     glitchEffects.length = 0;
-    glitchEffects = glitchSelect.selected();
+    glitchEffects = glitchSelect.selected();  // TODO REMOVE DEP
 
     for (let i = 0; i < glitchEffects.length; i++) {
         if (glitchEffects[i] == 1) {
@@ -119,9 +126,47 @@ function startGlitch() {
     }
 
     //glitchType = glitchSelect.selected();
-    let tempVal = parseInt(glitchDurInput.value());
+    let tempVal = parseInt(glitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
     glitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
-    console.log("Triggered effects for frames: " +  glitchFrames);
+}
+
+function startFgGlitch() {
+    fgGlitchEffects.length = 0;
+    fgGlitchEffects = fgGlitchSelect.selected(); // TODO REMOVE DEP
+
+    for (let i = 0; i < fgGlitchEffects.length; i++) {
+        if (fgGlitchEffects[i] == 1) {
+            fgGlitchScanDir = random(1);
+            fgGlitchScanX = floor(random(DEFAULT_W / bgScaleF));
+            fgGlitchScanY = floor(random(DEFAULT_H / bgScaleF));
+        } else if (fgGlitchEffects[i] == 2) {
+            fgGlitchHoles.length = 0;
+            let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
+    
+            for (let i = 0; i < N; i++) {
+                let srcX = floor(random(DEFAULT_W / bgScaleF));
+                let srcY = floor(random(DEFAULT_H / bgScaleF));
+                let srcW = floor(random(DEFAULT_W / bgScaleF));
+                let srcH = floor(random(DEFAULT_H / bgScaleF));
+                
+                let dstX = floor(random(DEFAULT_W / bgScaleF));
+                let dstY = floor(random(DEFAULT_H / bgScaleF));
+                let dstW = floor(random(DEFAULT_W / bgScaleF));
+                let dstH = floor(random(DEFAULT_H / bgScaleF));
+    
+                fgGlitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
+                                     dx: dstX, dy: dstY , dw: dstW, dh: dstH});
+            }
+        } else if (fgGlitchEffects[i] == 3) {
+            fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
+        } else if (fgGlitchEffects[i] == 4) {
+            fgGlitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
+        }
+    }
+
+    //glitchType = glitchSelect.selected();
+    let tempVal = parseInt(fgGlitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
+    fgGlitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
 }
 
 function initTargets () {
@@ -312,7 +357,7 @@ function render() {
 
         // Downscale the image
         image2D.resize(DEFAULT_W / scaleF, DEFAULT_H / scaleF);
-        addAlpha(image2D);
+  
 
         if(isBWOn) {
             image2D.filter(GRAY); 
@@ -325,7 +370,24 @@ function render() {
             ditherIt(image2D, isBWOn, depthFg); 
         }
 
+        if (fgGlitchFrames > 0) {
+            for (let i = 0; i < fgGlitchEffects.length; i++) {
+                if (fgGlitchEffects[i] == 1) {
+                    GlitchScanner(image2D,  fgGlitchScanDir, fgGlitchScanX * scaleF, fgGlitchScanY * scaleF);
+                } else if (fgGlitchEffects[i]  == 2) {
+                    GlitchScramble(image2D, fgGlitchHoles, scaleF);
+                } else if (fgGlitchEffects[i]  == 3) {
+                    GlitchWarp(image2D, fgGlitchWarpOffset * scaleF);
+                } else if (fgGlitchEffects[i]  == 4) {
+                    GlitchPixelBurn(image2D, fgGlitchBurnThresh);
+                }
+            }
+
+            fgGlitchFrames--;
+        }
+
         // Upscale back the image
+        addAlpha(image2D);
         finalFg = upScale(image2D, finalFg, scaleF, depthFg);
 
         if (isMixerOn === false) {
