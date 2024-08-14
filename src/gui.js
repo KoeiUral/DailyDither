@@ -233,7 +233,7 @@ function preGlitchCheckEvent() {
 
 function updateGifPeriof() {
     let tempVal = parseInt(this.value());
-    gifDuration = (isNaN(tempVal)) ? 0 : tempVal;
+    recDuration = (isNaN(tempVal)) ? 0 : tempVal;
 }
 
 
@@ -249,11 +249,14 @@ function create_gui() {
     let pointMouseCheck, trSpeedSlider;
     let scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
+    let fgSatSlider, bgSatSlider;
     let checkDither, checkBW;
     let bgCheckDither, bgCheckBW;
-    let checkMixer;
+    let gifDurationInput;
     let glitchTriggerBtn;
-    let fgSatSlider, bgSatSlider;
+    let checkMixer;
+    let gifBtn, webmBtn;
+
 
     /* Hook the canvas */
     myCanvas.parent('html_canvas');
@@ -443,8 +446,12 @@ function create_gui() {
     gifBtn = createButton('SAVE GIF');
     gifBtn.mousePressed(startSavingGIF);
 
+    webmBtn = createButton('SAVE WEBM');
+    webmBtn.mousePressed(startSavingWEBM);
+
     /* Hook widget to html */
-    gifBtn.parent('html_gifBtn');
     checkMixer.parent('html_checkMixer');
     gifDurationInput.parent('html_gifDurInput');
+    gifBtn.parent('html_gifBtn');
+    webmBtn.parent('html_webmBtn');
 }

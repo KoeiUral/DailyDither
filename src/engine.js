@@ -35,10 +35,10 @@ let depthBg = 4;
 
 let _3dGraph;
 let _2dGraph;
-let gifCapturer;
-let gifHyperPeriod = -1;
-let gifDuration = 0;
-let gifStarted = false;
+let webmPeriod = -1;
+let recDuration = 0;
+let webmCapturer;
+let webmStarted = false;
 //let _gifGraph;
 
 let image2D;
@@ -206,14 +206,23 @@ function startSavingGIF() {
     let yPeriod = (yRot != 0) ? floor(2 * PI / yRot) : 1;
     let zPeriod = (zRot != 0) ? floor(2 * PI / zRot) : 1;
 
-    gifHyperPeriod = (gifDuration != 0) ? gifDuration : lcm3(xPeriod, yPeriod, zPeriod);
-    //if (gifStarted == false) {
-    //   gifStarted = true;
-    //    gifCapturer.start();
-    //}
+    let gifHyperPeriod = (recDuration != 0) ? recDuration : lcm3(xPeriod, yPeriod, zPeriod);
 
     //console.log("Start saving gif, hyper period: " + hyperPeriod);
     saveGif('gifMatta', gifHyperPeriod, {  units: 'frames' });
+}
+
+function startSavingWEBM() {
+    let xPeriod = (xRot != 0) ? floor(2 * PI / xRot) : 1;
+    let yPeriod = (yRot != 0) ? floor(2 * PI / yRot) : 1;
+    let zPeriod = (zRot != 0) ? floor(2 * PI / zRot) : 1;
+
+    webmPeriod = (recDuration != 0) ? recDuration : lcm3(xPeriod, yPeriod, zPeriod);
+
+    if (webmStarted == false) {
+        webmStarted = true;
+        webmCapturer.start();
+    }
 }
 
 
@@ -224,7 +233,7 @@ function init_engine () {
     _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
     _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
     //_gifGraph = createGraphics(DEFAULT_W, DEFAULT_H);
-    //gifCapturer = new CCapture( { format: 'gif', workersPath: 'lib/' } )
+    webmCapturer = new CCapture( { format: 'webm', display: true } );
 
     initFonts(fontImage);
     initNoise();
@@ -320,17 +329,17 @@ function render() {
         image(mixImage, 0, 0, DEFAULT_W, DEFAULT_H);
     }
 
-    /* Save the GIFs
-    if (gifHyperPeriod > 0) {
+    /* Save the WEBM  */
+    if (webmPeriod > 0) {
         //let smallImg = get();
         //.resize(DEFAULT_W / 2, DEFAULT_H / 2);
 
-        gifCapturer.capture(document.getElementById('defaultCanvas0'));
-        gifHyperPeriod--;
-    } else if (gifHyperPeriod == 0) {
-        gifCapturer.stop();
-        gifCapturer.save();
-        gifHyperPeriod--;
+        webmCapturer.capture(document.getElementById('defaultCanvas0'));
+        webmPeriod--;
+    } else if (webmPeriod == 0) {
+        webmCapturer.stop();
+        webmCapturer.save();
+        webmPeriod--;
     }
-    */
+
 }
