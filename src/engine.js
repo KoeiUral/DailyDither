@@ -11,15 +11,20 @@ let myModel;
 let xRot = 0;
 let yRot = 0;
 let zRot = 0;
+/*
 let transPoint1x = 0;
 let transPoint1y = 0;
 let transPoint2x = 0;
 let transPoint2y = 0;
 let transPoint3x = 0;
 let transPoint3y = 0;
+*/
 
+
+const MAX_TARGETS = 3;
 let targets = [];
-let targetNbr = 0;
+let targetsInUse = [];
+let targetUsed = 0;
 let currentPos;
 let targetIndex = 0;
 
@@ -118,10 +123,10 @@ function startGlitch() {
 }
 
 function initTargets () {
-    targetNbr = 3;
 
-    for (let i = 0; i < targetNbr; i++) {
+    for (let i = 0; i < MAX_TARGETS; i++) {
         targets.push(createVector(0, 0, 0));
+        targetsInUse.push(false);
     }
 
     currentPos = createVector(0, 0, 0);
@@ -143,8 +148,10 @@ function checkTargetChange() {
 
     let diff = p5.Vector.sub(currentPos, targets[targetIndex]);
     if (diff.mag() < 5) {
-        /* Move to the next target in the array */
-        targetIndex = (targetIndex + 1) % 3;
+        /* Move to the next target in use within the array */
+        do {
+            targetIndex = (targetIndex + 1) % MAX_TARGETS;
+        } while (targetsInUse[targetIndex] == false);       
     }
 }
 
@@ -153,15 +160,15 @@ function compute3D() {
     _3dGraph.background(0);
     _3dGraph.ambientLight(255, 255, 255, 255); 
     _3dGraph.directionalLight(255, 255, 255, 0, 0, -1);
-    //_3dGraph.lights();
-    //_3dGraph.pointLight(255, 255, 255, 100, 100, 100);
 
     _3dGraph.scale(3 / 800 * DEFAULT_W); // Scaled to make model fit into canvas ???
 
     /* Apply translation */
-    currentPos = p5.Vector.lerp(currentPos, targets[targetIndex], 0.1);
-    _3dGraph.translate(currentPos);
-    checkTargetChange();
+    if (targetUsed > 1) {
+        currentPos = p5.Vector.lerp(currentPos, targets[targetIndex], 0.1);
+        _3dGraph.translate(currentPos);
+        checkTargetChange();
+    }
 
     /* Apply default (?) + custom rotation */
     _3dGraph.rotateX(PI);

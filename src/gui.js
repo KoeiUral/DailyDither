@@ -46,7 +46,23 @@ function updateZrot() {
     zRot = (isNaN(tempVal)) ? zRot : tempVal;
 }
 
+function p1CheckEvent() {
+    let inc = (this.checked()) ? +1 : -1;
+    targetsInUse[0] = this.checked();;
+    targetUsed = targetUsed + inc;
+}
 
+function p2CheckEvent() {
+    let inc = (this.checked()) ? +1 : -1;
+    targetsInUse[1] = this.checked();;
+    targetUsed = targetUsed + inc;    
+}
+
+function p3CheckEvent() {
+    let inc = (this.checked()) ? +1 : -1;
+    targetsInUse[2] = this.checked();;
+    targetUsed = targetUsed + inc;
+}
 
 function updateXP1() {
     let tempVal = parseInt(this.value());
@@ -212,6 +228,7 @@ function updateGifPeriof() {
 function create_gui() {
     let file3DSelector, textureSelector, bgSelector;
     let xRotInput, yRotInput, zRotInput;
+    let p1Check, p2Check, p3Check;
     let xP1Input, yP1Input, zP1Input, xP2Input, yP2Input, zP2Input, xP3Input, yP3Input, zP3Input; 
     let scaleInput, madInput, madInputFg, madInputBg;
     let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
@@ -239,7 +256,8 @@ function create_gui() {
     zRotInput.size(WIDGET_SIZE);
     zRotInput.input(updateZrot);
 
-    /* TODO: Add translation inputs */
+    p1Check = createCheckbox('Point 1 (x, y, z):', false);
+    p1Check.changed(p1CheckEvent);
     xP1Input = createInput(DEFAULT_W / 2);
     xP1Input.size(WIDGET_SIZE);
     xP1Input.input(updateXP1);
@@ -249,6 +267,9 @@ function create_gui() {
     zP1Input = createInput('0');
     zP1Input.size(WIDGET_SIZE);
     zP1Input.input(updateZP1);
+
+    p2Check = createCheckbox('Point 2 (x, y, z):', false);
+    p2Check.changed(p2CheckEvent);
     xP2Input = createInput(DEFAULT_W / 2);
     xP2Input.size(WIDGET_SIZE);
     xP2Input.input(updateXP2);
@@ -258,6 +279,9 @@ function create_gui() {
     zP2Input = createInput('0');
     zP2Input.size(WIDGET_SIZE);
     zP2Input.input(updateZP2);
+
+    p3Check = createCheckbox('Point 3 (x, y, z):', false);
+    p3Check.changed(p3CheckEvent);
     xP3Input = createInput(DEFAULT_W / 2);
     xP3Input.size(WIDGET_SIZE);
     xP3Input.input(updateXP3);
@@ -295,6 +319,9 @@ function create_gui() {
     xRotInput.parent('html_xRotInput');
     yRotInput.parent('html_yRotInput');
     zRotInput.parent('html_zRotInput');
+    p1Check.parent('html_p1Check');
+    p2Check.parent('html_p2Check');
+    p3Check.parent('html_p3Check');
     xP1Input.parent('html_xP1Input');
     yP1Input.parent('html_yP1Input');
     zP1Input.parent('html_zP1Input');
