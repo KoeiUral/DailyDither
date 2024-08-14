@@ -2,10 +2,7 @@
 /**
  * Global visibility Widgets
  */
-let fgSatSlider;
-let bgSatSlider;
 let mouseClickEnable = false;
-
 
 const WIDGET_SIZE = 50;
 
@@ -157,6 +154,10 @@ function updateFlash() {
     }
 }
 
+function updateFgSaturation() {
+    satLevelFg = this.value();
+}
+
 function updateHueBg() {
     let tempVal = parseInt(this.value());
     if (tempVal !== NaN) {
@@ -169,6 +170,10 @@ function updateFlashBg() {
     if ((tempVal !== NaN) && (tempVal >= 0)) {
         flashOffsetBg = tempVal;
     }
+}
+
+function updateBgSaturation() {
+    satLevelBg = this.value();
 }
 
 function updateScale() {
@@ -248,6 +253,7 @@ function create_gui() {
     let bgCheckDither, bgCheckBW;
     let checkMixer;
     let glitchTriggerBtn;
+    let fgSatSlider, bgSatSlider;
 
     /* Hook the canvas */
     myCanvas.parent('html_canvas');
@@ -268,37 +274,37 @@ function create_gui() {
 
     p1Check = createCheckbox('Point 1 (x, y, z):', false);
     p1Check.changed(p1CheckEvent);
-    xP1Input = createInput(DEFAULT_W / 2);
+    xP1Input = createInput((targets[0].x + DEFAULT_W / 2).toString());
     xP1Input.size(WIDGET_SIZE);
     xP1Input.input(updateXP1);
-    yP1Input = createInput(DEFAULT_H / 2);
+    yP1Input = createInput((targets[0].y + DEFAULT_H / 2).toString());
     yP1Input.size(WIDGET_SIZE);
     yP1Input.input(updateYP1);
-    zP1Input = createInput('0');
+    zP1Input = createInput((targets[0].z).toString());
     zP1Input.size(WIDGET_SIZE);
     zP1Input.input(updateZP1);
 
     p2Check = createCheckbox('Point 2 (x, y, z):', false);
     p2Check.changed(p2CheckEvent);
-    xP2Input = createInput(DEFAULT_W / 2);
+    xP2Input = createInput((targets[1].x + DEFAULT_W / 2).toString());
     xP2Input.size(WIDGET_SIZE);
     xP2Input.input(updateXP2);
-    yP2Input = createInput(DEFAULT_H / 2);
+    yP2Input = createInput((targets[1].y + DEFAULT_H / 2).toString());
     yP2Input.size(WIDGET_SIZE);
     yP2Input.input(updateYP2);
-    zP2Input = createInput('0');
+    zP2Input = createInput((targets[1].z).toString());
     zP2Input.size(WIDGET_SIZE);
     zP2Input.input(updateZP2);
 
     p3Check = createCheckbox('Point 3 (x, y, z):', false);
     p3Check.changed(p3CheckEvent);
-    xP3Input = createInput(DEFAULT_W / 2);
+    xP3Input = createInput((targets[2].x + DEFAULT_W / 2).toString());
     xP3Input.size(WIDGET_SIZE);
     xP3Input.input(updateXP3);
-    yP3Input = createInput(DEFAULT_H / 2);
+    yP3Input = createInput((targets[2].y + DEFAULT_H / 2).toString());
     yP3Input.size(WIDGET_SIZE);
     yP3Input.input(updateYP3);
-    zP3Input = createInput('0');
+    zP3Input = createInput((targets[2].z).toString());
     zP3Input.size(WIDGET_SIZE);
     zP3Input.input(updateZP3);
 
@@ -326,6 +332,7 @@ function create_gui() {
     hueMadInput.input(updateFlash);
     fgSatSlider = createSlider(0, 1, 0, 0.05);
     fgSatSlider.size(120);
+    fgSatSlider.changed(updateFgSaturation);
 
     /* Hook widget to html */
     file3DSelector.parent('html_file3DSelector');
@@ -397,6 +404,7 @@ function create_gui() {
 
     bgSatSlider = createSlider(0, 1, 0, 0.05);
     bgSatSlider.size(120);
+    bgSatSlider.changed(updateBgSaturation);
 
     glitchSelect = createSelect(true);
     glitchSelect.option('SCAN', 1);

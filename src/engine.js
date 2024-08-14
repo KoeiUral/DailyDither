@@ -25,8 +25,10 @@ let bgScaleF = 1;
 
 let hueOffset = 0;
 let flashOffset = 0;
+let satLevelFg = 0;
 let hueOffsetBg = 0;
 let flashOffsetBg = 0;
+let satLevelBg = 0;
 
 let depthFg = 4;
 let depthBg = 4;
@@ -255,8 +257,8 @@ function render() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
-        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (bgSatSlider.value() != 0)) {    
-            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, bgSatSlider.value());
+        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (satLevelBg != 0)) {    
+            ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, satLevelBg);
         }
 
         if (isBgDitherOn) {
@@ -296,8 +298,8 @@ function render() {
 
         if(isBWOn) {
             image2D.filter(GRAY); 
-        } else if (((hueOffset % 360) != 0) || (flashOffset != 0) || (fgSatSlider.value() != 0)) {  
-            ShiftHue(image2D, hueOffset, flashOffset, fgSatSlider.value());
+        } else if (((hueOffset % 360) != 0) || (flashOffset != 0) || (satLevelFg != 0)) {  
+            ShiftHue(image2D, hueOffset, flashOffset, satLevelFg);
         }
 
         if (isDitherOn) {
