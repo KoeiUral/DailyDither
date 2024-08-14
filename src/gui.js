@@ -147,6 +147,13 @@ function updateHue() {
     }
 }
 
+function updateHueInc() {
+    let tempVal = parseInt(this.value());
+    if (isNaN(tempVal) === false) {
+        hueInc = tempVal;
+    }
+}
+
 function updateFlash() {
     let tempVal = parseInt(this.value());
     if ((tempVal !== NaN) && (tempVal >= 0)) {
@@ -162,6 +169,13 @@ function updateHueBg() {
     let tempVal = parseInt(this.value());
     if (tempVal !== NaN) {
         hueOffsetBg = tempVal;
+    }
+}
+
+function updateHueIncBg() {
+    let tempVal = parseInt(this.value());
+    if (isNaN(tempVal) === false) {
+        hueIncBg = tempVal;
     }
 }
 
@@ -207,6 +221,7 @@ function updateMadnessBg() {
     }
 }
 
+
 function ditherCheckEvent() {
     isDitherOn = this.checked();
 }
@@ -248,7 +263,7 @@ function create_gui() {
     let xP1Input, yP1Input, zP1Input, xP2Input, yP2Input, zP2Input, xP3Input, yP3Input, zP3Input;
     let pointMouseCheck, trSpeedSlider;
     let scaleInput, madInput, madInputFg, madInputBg;
-    let hueOffInput, hueMadInput, hueOffInputBg, hueMadInputBg;
+    let hueOffInput, hueIncInput, hueMadInput, hueOffInputBg, hueIncInputBg, hueMadInputBg;
     let fgSatSlider, bgSatSlider;
     let checkDither, checkBW;
     let bgCheckDither, bgCheckBW;
@@ -330,6 +345,9 @@ function create_gui() {
     hueOffInput = createInput('0');
     hueOffInput.size(WIDGET_SIZE);
     hueOffInput.input(updateHue);
+    hueIncInput = createInput('0');
+    hueIncInput.size(WIDGET_SIZE);
+    hueIncInput.input(updateHueInc);
     hueMadInput = createInput('0');
     hueMadInput.size(WIDGET_SIZE);
     hueMadInput.input(updateFlash);
@@ -362,6 +380,7 @@ function create_gui() {
     checkBW.parent('html_fgCheckBW');
     scaleInput.parent('html_fgScaleInput');
     hueOffInput.parent('html_fgHueInput');
+    hueIncInput.parent('html_fgHueIncInput');
     hueMadInput.parent('html_fgFlashInput');
     fgSatSlider.parent('html_fgSatSlider');
 
@@ -369,11 +388,9 @@ function create_gui() {
     madInput = createInput('4');
     madInput.size(WIDGET_SIZE);
     madInput.input(updateMadness);
-
     madInputFg = createInput('4');
     madInputFg.size(WIDGET_SIZE);
     madInputFg.input(updateMadnessFg);
-
     madInputBg = createInput('4');
     madInputBg.size(WIDGET_SIZE);
     madInputBg.input(updateMadnessBg);
@@ -390,21 +407,20 @@ function create_gui() {
     bgScaleInput = createInput('1');
     bgScaleInput.size(WIDGET_SIZE);
     bgScaleInput.input(updateBGScale);
-
     bgCheckDither = createCheckbox('Dither BG', false);
     bgCheckDither.changed(bgDitherCheckEvent);
-
     bgCheckBW = createCheckbox('B&W BG', false);
     bgCheckBW.changed(bgBwCheckEvent);
 
     hueOffInputBg = createInput('0');
     hueOffInputBg.size(WIDGET_SIZE);
     hueOffInputBg.input(updateHueBg);
-
+    hueIncInputBg = createInput('0');
+    hueIncInputBg.size(WIDGET_SIZE);
+    hueIncInputBg.input(updateHueIncBg);
     hueMadInputBg = createInput('0');
     hueMadInputBg.size(WIDGET_SIZE);
     hueMadInputBg.input(updateFlashBg);
-
     bgSatSlider = createSlider(0, 1, 0, 0.05);
     bgSatSlider.size(120);
     bgSatSlider.changed(updateBgSaturation);
@@ -428,6 +444,7 @@ function create_gui() {
     bgCheckBW.parent('html_bgCheckBW');
     bgScaleInput.parent('html_bgScaleInput');
     hueOffInputBg.parent('html_bgHueInput');
+    hueIncInputBg.parent('html_bgHueIncInput');
     hueMadInputBg.parent('html_bgFlashInput');
     bgSatSlider.parent('html_bgSatSlider');
     glitchSelect.parent('html_bgGlitchSelect');

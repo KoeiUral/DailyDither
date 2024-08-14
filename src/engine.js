@@ -24,9 +24,11 @@ let scaleF = 1;
 let bgScaleF = 1;
 
 let hueOffset = 0;
+let hueInc = 0;
 let flashOffset = 0;
 let satLevelFg = 0;
 let hueOffsetBg = 0;
+let hueIncBg = 0;
 let flashOffsetBg = 0;
 let satLevelBg = 0;
 
@@ -266,7 +268,8 @@ function render() {
       
         if(isBgBWOn) {
             bgImage.filter(GRAY); 
-        } else if (((hueOffsetBg % 360) != 0) || (flashOffsetBg != 0) || (satLevelBg != 0)) {    
+        } else if (((hueOffsetBg % 360) != 0) || (hueIncBg != 0) || (flashOffsetBg != 0) || (satLevelBg != 0)) {
+            hueOffsetBg = (hueOffsetBg + hueIncBg) % 360;     
             ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, satLevelBg);
         }
 
@@ -307,7 +310,8 @@ function render() {
 
         if(isBWOn) {
             image2D.filter(GRAY); 
-        } else if (((hueOffset % 360) != 0) || (flashOffset != 0) || (satLevelFg != 0)) {  
+        } else if (((hueOffset % 360) != 0) || (hueInc != 0) || (flashOffset != 0) || (satLevelFg != 0)) {
+            hueOffset = (hueOffset + hueInc) % 360;  
             ShiftHue(image2D, hueOffset, flashOffset, satLevelFg);
         }
 
