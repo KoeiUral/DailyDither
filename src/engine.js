@@ -61,6 +61,7 @@ let isPreGlitchOnFg = true;
 let fgGlitchHoles = [];
 let fgGlitchWarpOffset = 0;
 let fgGlitchBurnThresh = [];
+let glitchSequence = [];
 
 let glitchEffects = [];
 let glitchFrames = 0;
@@ -135,12 +136,20 @@ function startFgGlitch() {
     fgGlitchEffects.length = 0;
     fgGlitchEffects = fgGlitchSelect.selected(); // TODO REMOVE DEP
 
-    for (let i = 0; i < fgGlitchEffects.length; i++) {
-        if (fgGlitchEffects[i] == 1) {
+    let tempVal = configureGlitchParams(fgGlitchEffects);
+
+    /* Override the random glitch duration iwth the user defined one */
+    tempVal = parseInt(fgGlitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
+    fgGlitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
+}
+
+function configureGlitchParams(glitchList) {
+    for (let i = 0; i < glitchList.length; i++) {
+        if (glitchList[i] == 1) {
             fgGlitchScanDir = random(1);
             fgGlitchScanX = floor(random(DEFAULT_W / scaleF));
             fgGlitchScanY = floor(random(DEFAULT_H / scaleF));
-        } else if (fgGlitchEffects[i] == 2) {
+        } else if (glitchList[i] == 2) {
             fgGlitchHoles.length = 0;
             let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
     
@@ -158,17 +167,53 @@ function startFgGlitch() {
                 fgGlitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
                                      dx: dstX, dy: dstY , dw: dstW, dh: dstH});
             }
-        } else if (fgGlitchEffects[i] == 3) {
+        } else if (glitchList[i] == 3) {
             fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scaleF));
-        } else if (fgGlitchEffects[i] == 4) {
+        } else if (glitchList[i] == 4) {
             fgGlitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
         }
     }
 
     //glitchType = glitchSelect.selected();
-    let tempVal = parseInt(fgGlitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
-    fgGlitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
+    let sequenceTime = parseInt(random(10,150)); //TODO: Remove Magic
+
+    return sequenceTime;
 }
+
+function createGlitchSequence() {
+    let stepNbr = parseInt(random(2, 5));
+    const MAX_GLITCH = 4;
+
+    /* Clear the list of selcetd glitches */
+    glitchSequence.length = 0;
+
+    for (let i = 0; i < stepNbr; i++) {
+        /* Create the list of possible values [1,2,3,4] */
+        let effectValues = [];
+        for (let i = 1; i <= MAX_GLITCH; i++) {
+            effectValues.push(i); 
+        }
+
+        glitchEffectNbr = parseInt(random(1, MAX_GLITCH));
+        let randomSeq = [];
+
+        /* Get the array of unique glitchEffectNbr numbers with value between 1 and MAX_GLITCH 
+         * e.g. glitchNumber = 3 -> sequence is [1, 3, 4]
+         * algo taken from: https://dev.to/sagdish/generate-unique-non-repeating-random-numbers-g6g
+         */
+        for (let j = 1; j <= glitchEffectNbr; j++) {
+          const randomId = Math.floor(Math.random() * (MAX_GLITCH - j));
+          randomSeq.push(effectValues[randomId]);
+
+          effectValues[randomId] = effectValues[MAX_GLITCH - j];
+        }
+
+        glitchSequence.push(randomSeq);
+    }
+
+    console.log(glitchSequence);
+}
+
 
 function initTargets () {
 

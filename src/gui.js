@@ -282,7 +282,7 @@ function create_gui() {
     let checkDither, checkBW;
     let bgCheckDither, bgCheckBW;
     let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
-    let glitchPreCheck, glitchTriggerBtn;
+    let glitchPreCheck, glitchTriggerBtn, glitchRandomBtn;
     let checkMixer;
     let gifDurationInput;
     let gifBtn, webmBtn;
@@ -469,6 +469,8 @@ function create_gui() {
     glitchPreCheck.changed(preGlitchCheckEvent);
     glitchTriggerBtn = createButton('TRIGGER');
     glitchTriggerBtn.mousePressed(startGlitch);
+    glitchRandomBtn = createButton('RANDOM');
+    glitchRandomBtn.mousePressed(createGlitchSequence);
 
     /* Hook widget to html */
     bgSelector.parent('html_bgSelector');
@@ -483,6 +485,7 @@ function create_gui() {
     glitchDurInput.parent('html_bgGlitchDurInput');
     glitchPreCheck.parent('html_bgGlitchPreCheck');
     glitchTriggerBtn.parent('html_bgGlitchTriggerBtn');
+    glitchRandomBtn.parent('html_bgGlitchRandomBtn');
 
     /* ------ EXPORT SECTION ------ */
     checkMixer = createCheckbox('Enable CH mixer', false);
