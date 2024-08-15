@@ -360,6 +360,31 @@ function glitchFg(image) {
 }
 
 
+function checkGlitchAutomaticSeq() {
+    if (glitchSeqIsOn === true) {
+        // Check if we are in a wait state, between steps
+        if (glitchWaitTime > 0) {
+            glitchWaitTime--;
+        } else if (glitchFrames === 0) { //if wait is finished and no more glitch frames, go to next step
+            // Get next step in the sequence
+            if (currentStep < glitchSequence.length) {
+                // Set new effect and store glitchframes somewhere:
+                glitchEffects = glitchSequence[currentStep].slice();
+                nextGlitchFrames = configureGlitchParams(glitchEffects);
+                glitchWaitTime = (currentStep === 0) ? 0 : WAIT_TIME;
+                currentStep++;
+            } else { // if end of seq
+                // Reset all and set glitchSeqIsOn to false
+                currentStep = 0;
+                glitchFrames = 0;
+                nextGlitchFrames = 0;
+                glitchWaitTime = 0;
+                glitchSeqIsOn = false;
+            }  
+        } // else glitch is running
+    }
+}
+
 
 function init_engine () {
     pixelDensity(1);
@@ -413,6 +438,8 @@ function render() {
 
     if (modelReady) {
         let image2D = compute3D();
+
+        checkGlitchAutomaticSeq();
 
         if (isPreGlitchOnFg === true) {
             glitchFg(image2D);
