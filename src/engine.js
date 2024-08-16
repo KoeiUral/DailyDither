@@ -61,6 +61,22 @@ let isPreGlitchOnFg = true;
 let fgGlitchHoles = [];
 let fgGlitchWarpOffset = 0;
 let fgGlitchBurnThresh = [];
+
+const GlitchSeqState = {
+    IDLE: 'IDLE',
+    ON: 'ON',
+    WAIT: 'WAIT'
+  };
+
+const STEP_WAIT_TIME = 10;
+const MAX_SEQ_STEP = 10;
+const MIN_STEP_TIME = 7;
+const MAX_STEP_TIME = 35;
+
+let glitchCurrentState = GlitchSeqState.IDLE;
+let glitchCurrentStep = 0;
+let nextGlitchFrames = 0;
+let glitchWaitTime = 0;
 let glitchSequence = [];
 
 let glitchEffects = [];
@@ -97,38 +113,10 @@ function startGlitch() {
     glitchEffects.length = 0;
     glitchEffects = glitchSelect.selected();  // TODO REMOVE DEP
 
-    for (let i = 0; i < glitchEffects.length; i++) {
-        if (glitchEffects[i] == 1) {
-            glitchScanDir = random(1);
-            glitchScanX = floor(random(DEFAULT_W / bgScaleF));
-            glitchScanY = floor(random(DEFAULT_H / bgScaleF));
-        } else if (glitchEffects[i] == 2) {
-            glitchHoles.length = 0;
-            let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
-    
-            for (let i = 0; i < N; i++) {
-                let srcX = floor(random(DEFAULT_W / bgScaleF));
-                let srcY = floor(random(DEFAULT_H / bgScaleF));
-                let srcW = floor(random(DEFAULT_W / bgScaleF));
-                let srcH = floor(random(DEFAULT_H / bgScaleF));
-                
-                let dstX = floor(random(DEFAULT_W / bgScaleF));
-                let dstY = floor(random(DEFAULT_H / bgScaleF));
-                let dstW = floor(random(DEFAULT_W / bgScaleF));
-                let dstH = floor(random(DEFAULT_H / bgScaleF));
-    
-                glitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
-                                   dx: dstX, dy: dstY , dw: dstW, dh: dstH});
-            }
-        } else if (glitchEffects[i] == 3) {
-            glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
-        } else if (glitchEffects[i] == 4) {
-            glitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
-        }
-    }
+    let tempVal = configureGlitchParams(glitchEffects);
 
-    //glitchType = glitchSelect.selected();
-    let tempVal = parseInt(glitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
+    /* Override the random glitch duration iwth the user defined one */
+    tempVal = parseInt(glitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
     glitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
 }
 
@@ -136,20 +124,12 @@ function startFgGlitch() {
     fgGlitchEffects.length = 0;
     fgGlitchEffects = fgGlitchSelect.selected(); // TODO REMOVE DEP
 
-    let tempVal = configureGlitchParams(fgGlitchEffects);
-
-    /* Override the random glitch duration iwth the user defined one */
-    tempVal = parseInt(fgGlitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
-    fgGlitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
-}
-
-function configureGlitchParams(glitchList) {
-    for (let i = 0; i < glitchList.length; i++) {
-        if (glitchList[i] == 1) {
+    for (let i = 0; i < fgGlitchEffects.length; i++) {
+        if (fgGlitchEffects[i] == 1) {
             fgGlitchScanDir = random(1);
             fgGlitchScanX = floor(random(DEFAULT_W / scaleF));
             fgGlitchScanY = floor(random(DEFAULT_H / scaleF));
-        } else if (glitchList[i] == 2) {
+        } else if (fgGlitchEffects[i] == 2) {
             fgGlitchHoles.length = 0;
             let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
     
@@ -167,51 +147,15 @@ function configureGlitchParams(glitchList) {
                 fgGlitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
                                      dx: dstX, dy: dstY , dw: dstW, dh: dstH});
             }
-        } else if (glitchList[i] == 3) {
+        } else if (fgGlitchEffects[i] == 3) {
             fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scaleF));
-        } else if (glitchList[i] == 4) {
+        } else if (fgGlitchEffects[i] == 4) {
             fgGlitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
         }
     }
 
-    //glitchType = glitchSelect.selected();
-    let sequenceTime = parseInt(random(10,150)); //TODO: Remove Magic
-
-    return sequenceTime;
-}
-
-function createGlitchSequence() {
-    let stepNbr = parseInt(random(2, 5));
-    const MAX_GLITCH = 4;
-
-    /* Clear the list of selcetd glitches */
-    glitchSequence.length = 0;
-
-    for (let i = 0; i < stepNbr; i++) {
-        /* Create the list of possible values [1,2,3,4] */
-        let effectValues = [];
-        for (let i = 1; i <= MAX_GLITCH; i++) {
-            effectValues.push(i); 
-        }
-
-        glitchEffectNbr = parseInt(random(1, MAX_GLITCH));
-        let randomSeq = [];
-
-        /* Get the array of unique glitchEffectNbr numbers with value between 1 and MAX_GLITCH 
-         * e.g. glitchNumber = 3 -> sequence is [1, 3, 4]
-         * algo taken from: https://dev.to/sagdish/generate-unique-non-repeating-random-numbers-g6g
-         */
-        for (let j = 1; j <= glitchEffectNbr; j++) {
-          const randomId = Math.floor(Math.random() * (MAX_GLITCH - j));
-          randomSeq.push(effectValues[randomId]);
-
-          effectValues[randomId] = effectValues[MAX_GLITCH - j];
-        }
-
-        glitchSequence.push(randomSeq);
-    }
-
-    console.log(glitchSequence);
+    tempVal = parseInt(fgGlitchDurInput.value()); // TODO: Remove GIU DEPENDENCY
+    fgGlitchFrames = ((tempVal !== NaN) && (tempVal > 0)) ? tempVal : 0;
 }
 
 
@@ -359,31 +303,104 @@ function glitchFg(image) {
     }
 }
 
+function configureGlitchParams(glitchList) {
+    for (let i = 0; i < glitchList.length; i++) {
+        if (glitchList[i] == 1) {
+            glitchScanDir = random(1);
+            glitchScanX = floor(random(DEFAULT_W / bgScaleF));
+            glitchScanY = floor(random(DEFAULT_H / bgScaleF));
+        } else if (glitchList[i] == 2) {
+            glitchHoles.length = 0;
+            let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
+    
+            for (let i = 0; i < N; i++) {
+                let srcX = floor(random(DEFAULT_W / bgScaleF));
+                let srcY = floor(random(DEFAULT_H / bgScaleF));
+                let srcW = floor(random(DEFAULT_W / bgScaleF));
+                let srcH = floor(random(DEFAULT_H / bgScaleF));
+                
+                let dstX = floor(random(DEFAULT_W / bgScaleF));
+                let dstY = floor(random(DEFAULT_H / bgScaleF));
+                let dstW = floor(random(DEFAULT_W / bgScaleF));
+                let dstH = floor(random(DEFAULT_H / bgScaleF));
+    
+                glitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
+                                   dx: dstX, dy: dstY , dw: dstW, dh: dstH});
+            }
+        } else if (glitchList[i] == 3) {
+            glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
+        } else if (glitchList[i] == 4) {
+            glitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
+        }
+    }
+
+    let sequenceTime = parseInt(random(MIN_STEP_TIME, MAX_STEP_TIME));
+    return sequenceTime;
+}
+
+function createGlitchSequence() {
+    let stepNbr = parseInt(random(2, MAX_SEQ_STEP));
+    const MAX_GLITCH = 4;
+
+    /* Clear the list of selcetd glitches */
+    glitchSequence.length = 0;
+
+    for (let i = 0; i < stepNbr; i++) {
+        /* Create the list of possible values [1,2,3,4] */
+        let effectValues = [];
+        for (let i = 1; i <= MAX_GLITCH; i++) {
+            effectValues.push(i); 
+        }
+
+        glitchEffectNbr = parseInt(random(1, MAX_GLITCH));
+        let randomSeq = [];
+
+        /* Get the array of unique glitchEffectNbr numbers with value between 1 and MAX_GLITCH 
+         * e.g. glitchNumber = 3 -> sequence is [1, 3, 4]
+         * algo taken from: https://dev.to/sagdish/generate-unique-non-repeating-random-numbers-g6g
+         */
+        for (let j = 1; j <= glitchEffectNbr; j++) {
+          const randomId = Math.floor(Math.random() * (MAX_GLITCH - j));
+          randomSeq.push(effectValues[randomId]);
+
+          effectValues[randomId] = effectValues[MAX_GLITCH - j];
+        }
+
+        glitchSequence.push(randomSeq);
+    }
+
+    console.log(glitchSequence);
+    glitchCurrentState = GlitchSeqState.ON;
+}
 
 function checkGlitchAutomaticSeq() {
-    let glitchSeqIsOn = false;
 
-    if (glitchSeqIsOn === true) {
-        // Check if we are in a wait state, between steps
+    if ((glitchCurrentState === GlitchSeqState.ON) && (glitchFrames === 0)) {
+        // Get next step in the sequence
+        if (glitchCurrentStep < glitchSequence.length) {
+            // Set new effect and store glitchframes somewhere:
+            glitchEffects = glitchSequence[glitchCurrentStep].slice();
+            nextGlitchFrames = configureGlitchParams(glitchEffects);
+            glitchWaitTime = (glitchCurrentStep === 0) ? 0 : STEP_WAIT_TIME;
+            glitchCurrentState = GlitchSeqState.WAIT;
+            glitchCurrentStep++;
+        } else { // if end of seq
+            // Reset all and set SeqState to IDLE
+            glitchCurrentStep = 0;
+            glitchFrames = 0;
+            nextGlitchFrames = 0;
+            glitchWaitTime = 0;
+            glitchCurrentState = GlitchSeqState.IDLE;
+        }  
+    } // else glitch is running
+    
+    if (glitchCurrentState === GlitchSeqState.WAIT) {
         if (glitchWaitTime > 0) {
             glitchWaitTime--;
-        } else if (glitchFrames === 0) { //if wait is finished and no more glitch frames, go to next step
-            // Get next step in the sequence
-            if (currentStep < glitchSequence.length) {
-                // Set new effect and store glitchframes somewhere:
-                glitchEffects = glitchSequence[currentStep].slice();
-                nextGlitchFrames = configureGlitchParams(glitchEffects);
-                glitchWaitTime = (currentStep === 0) ? 0 : WAIT_TIME;
-                currentStep++;
-            } else { // if end of seq
-                // Reset all and set glitchSeqIsOn to false
-                currentStep = 0;
-                glitchFrames = 0;
-                nextGlitchFrames = 0;
-                glitchWaitTime = 0;
-                glitchSeqIsOn = false;
-            }  
-        } // else glitch is running
+        } else {
+            glitchCurrentState = GlitchSeqState.ON;
+            glitchFrames = nextGlitchFrames;
+        }
     }
 }
 
