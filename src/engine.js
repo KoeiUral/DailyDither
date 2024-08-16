@@ -1,7 +1,7 @@
 const DEFAULT_W = 600;
 const DEFAULT_H = 600;
 
-const MODEL_PATH = '../model/';
+const MODEL_PATH = './model/';
 
 let myCanvas;
 let modelReady = false;
@@ -361,6 +361,8 @@ function glitchFg(image) {
 
 
 function checkGlitchAutomaticSeq() {
+    let glitchSeqIsOn = false;
+
     if (glitchSeqIsOn === true) {
         // Check if we are in a wait state, between steps
         if (glitchWaitTime > 0) {
@@ -408,6 +410,8 @@ function render() {
     if(bgReady) {
         let bgImage = compute2D();
 
+        checkGlitchAutomaticSeq();
+
         if (isPreGlitchOn === true) {
             glitchBg(bgImage);
         }
@@ -438,8 +442,6 @@ function render() {
 
     if (modelReady) {
         let image2D = compute3D();
-
-        checkGlitchAutomaticSeq();
 
         if (isPreGlitchOnFg === true) {
             glitchFg(image2D);

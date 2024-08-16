@@ -14,6 +14,8 @@ const WIDGET_SIZE = 50;
 function handle3DFile(file) {
     modelReady = false;
     myModel = loadModel(MODEL_PATH + file.name, true, onModelLoaded);
+
+    console.log("File Path" + MODEL_PATH + file.name);
 }
 
 function handleTexture(file) {
