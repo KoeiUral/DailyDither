@@ -50,6 +50,7 @@ let image2D;
 let finalImg;
 let myTexture;
 let bg;
+let myBgIsVideo = false;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
@@ -106,9 +107,12 @@ function onTextureLoaded() {
 
 function onBGLoaded() {
     bgReady = true;
-    bg.hide();
-    bg.volume(0);
-    bg.loop();
+
+    if (myBgIsVideo) {
+        bg.hide();
+        bg.volume(0);
+        bg.loop();
+    }
 }
 
 function startGlitch() {

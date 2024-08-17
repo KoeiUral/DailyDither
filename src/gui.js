@@ -35,7 +35,18 @@ function handleTexture(file) {
 
 function handleBGFile(file) {
     bgReady = false;
-    bg = createVideo(VIDEO_PATH + file.name, onBGLoaded);
+    let fileExt = file.name.split('.').pop();
+
+    if ((fileExt === 'jpg') || (fileExt === 'jpeg') || (fileExt === 'png') || (fileExt === 'gif')) {
+        bg = loadImage(IMAGE_PATH + file.name, onBGLoaded);
+        myBgIsVideo = false;
+    } else if ((fileExt === 'mp4') || (fileExt === 'avi') || (fileExt === 'mov') || (fileExt === 'webm') || (fileExt === 'mkv')) {
+        bg = createVideo(VIDEO_PATH + file.name, onBGLoaded);
+        myBgIsVideo = true;    
+    }
+
+
+
 }
 
 
