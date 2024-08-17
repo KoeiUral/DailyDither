@@ -2,6 +2,8 @@ const DEFAULT_W = 600;
 const DEFAULT_H = 600;
 
 const MODEL_PATH = './model/';
+const IMAGE_PATH = './image/';
+const VIDEO_PATH = './video/';
 
 let myCanvas;
 let modelReady = false;

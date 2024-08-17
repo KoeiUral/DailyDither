@@ -23,10 +23,10 @@ function handleTexture(file) {
     let fileExt = file.name.split('.').pop();
 
     if ((fileExt === 'jpg') || (fileExt === 'jpeg') || (fileExt === 'png') || (fileExt === 'gif')) {
-        myTexture = loadImage(MODEL_PATH + file.name, onTextureLoaded);
+        myTexture = loadImage(IMAGE_PATH + file.name, onTextureLoaded);
         myTexIsVideo = false;
     } else if ((fileExt === 'mp4') || (fileExt === 'avi') || (fileExt === 'mov') || (fileExt === 'webm') || (fileExt === 'mkv')) {
-        myTexture = createVideo(MODEL_PATH + file.name, onTextureLoaded);
+        myTexture = createVideo(VIDEO_PATH + file.name, onTextureLoaded);
         myTexIsVideo = true;    
     }
 
@@ -35,7 +35,7 @@ function handleTexture(file) {
 
 function handleBGFile(file) {
     bgReady = false;
-    bg = createVideo(MODEL_PATH + file.name, onBGLoaded);
+    bg = createVideo(VIDEO_PATH + file.name, onBGLoaded);
 }
 
 
