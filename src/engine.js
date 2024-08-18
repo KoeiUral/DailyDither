@@ -375,7 +375,7 @@ function createGlitchSequence() {
         glitchSequence.push(randomSeq);
     }
 
-    console.log(glitchSequence);
+    //console.log(glitchSequence);
     glitchCurrentState = GlitchSeqState.ON;
 }
 
@@ -408,6 +408,27 @@ function checkGlitchAutomaticSeq() {
             glitchFrames = nextGlitchFrames;
         }
     }
+}
+
+function getFiles(path) {
+    let files = [];
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.open('GET', path, false); // false for synchronous request
+    xmlHttp.send(null);
+
+    let ret = xmlHttp.responseText;
+    let contentList = ret.split('\n');
+
+    for (let i = 0; i < contentList.length; i++) {
+        const rx = /href=\"(.*)\"\sclass/;
+        let found = rx.exec(contentList[i]);
+
+        if ((found !== null) && (found[1] !== "/")) {
+            files.push(found[1]);
+        }
+    }
+
+    return files;
 }
 
 

@@ -6,6 +6,22 @@ let mouseClickEnable = false;
 
 const WIDGET_SIZE = 50;
 
+let file3DSelector, textureSelector, bgSelector;
+let xRotInput, yRotInput, zRotInput;
+let p1Check, p2Check, p3Check;
+let xP1Input, yP1Input, zP1Input, xP2Input, yP2Input, zP2Input, xP3Input, yP3Input, zP3Input;
+let pointMouseCheck, trSpeedSlider;
+let scaleInput, bgScaleInput, madInput, madInputFg, madInputBg;
+let hueOffInput, hueIncInput, hueMadInput, hueOffInputBg, hueIncInputBg, hueMadInputBg;
+let fgSatSlider, bgSatSlider;
+let checkDither, checkBW;
+let bgCheckDither, bgCheckBW;
+let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
+let glitchPreCheck, glitchTriggerBtn, glitchRandomBtn;
+let checkMixer;
+let gifDurationInput;
+let gifBtn, webmBtn;
+
 
 /**
  * Create the Gui: create widgets and set them up
@@ -278,28 +294,98 @@ function updateGifPeriof() {
     recDuration = (isNaN(tempVal)) ? 0 : tempVal;
 }
 
+function generateRandomModel() {
+    // Get files in folders
+    let modelFiles = getFiles(MODEL_PATH);
+    let imageFiles = getFiles(IMAGE_PATH);
+    let videoFiles = getFiles(VIDEO_PATH);
+
+    // Pick a random 3d model
+    let modelId = floor(random(modelFiles.length));
+    myModel = loadModel(modelFiles[modelId], true, onModelLoaded);
+
+    // Apply texture 
+    if (random() < 0.5) {
+        myTexIsVideo = (random() < 0.2) ;
+        // Choose Video vs Image
+        if (myTexIsVideo) {
+            let videoId = floor(random(videoFiles.length));
+            myTexture = createVideo(videoFiles[videoId], onTextureLoaded);
+        } else {
+            let imageId = floor(random(imageFiles.length));
+            myTexture = loadImage(imageFiles[imageId], onTextureLoaded);
+        }
+    }
+
+    // Apply 3d random settings
+    xRot = random(0.3) * (random() < 0.5);
+    yRot = random(0.3) * (random() < 0.5);
+    zRot = random(0.3) * (random() < 0.5); // = 100% / PROB  -> (this case 50%), anzi no!
+    xRotInput.value(xRot);
+    yRotInput.value(yRot);
+    zRotInput.value(zRot);
+    scaleF = 1 + floor(random(1, 4)) * (random() < 0.5);
+    hueOffset = floor(random(0, 100)) * (random() < 0.5);
+    hueInc = floor(random(0, 15)) * (random() < 0.5);
+    flashOffset = floor(random(0, 20)) * (random() < 0.5);
+    satLevelFg = floor(random()) * (random() < 0.5);
+    isDitherOn = (random() < 0.7);
+    isBWOn = (random() < 0.3);
+
+    scaleInput.value(scaleF);
+    hueOffInput.value(hueOffset);
+    hueIncInput.value(hueInc);
+    hueMadInput.value(flashOffset);
+    fgSatSlider.value(satLevelFg);
+    checkDither.checked = isDitherOn;  // NOT WORKING for check box
+    checkBW.value(isBWOn);  // NOT WORKING for check box
+
+    let pointsNbr = floor(random(10));
+    for (let i = 0; i < pointsNbr; i++) {
+        let xValue = floor(random(DEFAULT_W));
+        let yValue = floor(random(DEFAULT_H));
+        let zValue = floor(random(-800, -200));
+        addTransaltionTarget(xValue, yValue, zValue);
+    }
+
+    // Pick up a random BG
+    myBgIsVideo = (random() < 0.8) ;
+    // Choose Video vs Image
+    if (myBgIsVideo) {
+        let videoId = floor(random(videoFiles.length));
+        bg = createVideo(videoFiles[videoId], onBGLoaded);
+    } else {
+        let imageId = floor(random(imageFiles.length));
+        bg = loadImage(imageFiles[imageId], onBGLoaded);
+    }
+
+    bgScaleF = 1 + floor(random(1, 4)) * (random() < 0.5);
+    hueOffsetBg = floor(random(0, 100)) * (random() < 0.5);
+    hueIncBg = floor(random(0, 15)) * (random() < 0.5);
+    flashOffsetBg = floor(random(0, 20)) * (random() < 0.5);
+    satLevelBg = floor(random()) * (random() < 0.5);
+    isBgDitherOn = (random() < 0.7);
+    isBgBWOn =  (random() < 0.3);
+
+    bgScaleInput.value(bgScaleF);
+    hueOffInputBg.value(hueOffsetBg);
+    hueIncInputBg.value(hueIncBg);
+    hueMadInputBg.value(flashOffsetBg);
+    bgSatSlider.value(satLevelBg);
+    bgCheckDither.checked = isBgDitherOn;  // NOT WORKING for check box
+    bgCheckBW.value(isBgBWOn);  // NOT WORKING for check box
+
+    createGlitchSequence();
+
+    
+}
+
 
 /**
  * Create the Gui: create widgets and set them up
  */
 
 function create_gui() {
-    let file3DSelector, textureSelector, bgSelector;
-    let xRotInput, yRotInput, zRotInput;
-    let p1Check, p2Check, p3Check;
-    let xP1Input, yP1Input, zP1Input, xP2Input, yP2Input, zP2Input, xP3Input, yP3Input, zP3Input;
-    let pointMouseCheck, trSpeedSlider;
-    let scaleInput, madInput, madInputFg, madInputBg;
-    let hueOffInput, hueIncInput, hueMadInput, hueOffInputBg, hueIncInputBg, hueMadInputBg;
-    let fgSatSlider, bgSatSlider;
-    let checkDither, checkBW;
-    let bgCheckDither, bgCheckBW;
-    let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
-    let glitchPreCheck, glitchTriggerBtn, glitchRandomBtn;
-    let checkMixer;
-    let gifDurationInput;
-    let gifBtn, webmBtn;
-
 
     /* Hook the canvas */
     myCanvas.parent('html_canvas');
@@ -501,6 +587,9 @@ function create_gui() {
     glitchRandomBtn.parent('html_bgGlitchRandomBtn');
 
     /* ------ EXPORT SECTION ------ */
+    genBtn = createButton('GENERATE');
+    genBtn.mousePressed(generateRandomModel);
+
     checkMixer = createCheckbox('Enable CH mixer', false);
     checkMixer.changed(mixCheckEvent);
 
@@ -515,6 +604,7 @@ function create_gui() {
     webmBtn.mousePressed(startSavingWEBM);
 
     /* Hook widget to html */
+    genBtn.parent('html_generateBtn');
     checkMixer.parent('html_checkMixer');
     gifDurationInput.parent('html_gifDurInput');
     gifBtn.parent('html_gifBtn');
