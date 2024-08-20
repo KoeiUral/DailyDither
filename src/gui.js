@@ -302,7 +302,7 @@ function generateRandomModel() {
 
     // Pick a random 3d model
     let modelId = floor(random(modelFiles.length));
-    myModel = loadModel(modelFiles[modelId], true, onModelLoaded);
+    myModel = loadModel(MODEL_PATH + modelFiles[modelId], true, onModelLoaded);
 
     // Apply texture 
     if (random() < 0.5) {
@@ -310,10 +310,10 @@ function generateRandomModel() {
         // Choose Video vs Image
         if (myTexIsVideo) {
             let videoId = floor(random(videoFiles.length));
-            myTexture = createVideo(videoFiles[videoId], onTextureLoaded);
+            myTexture = createVideo(VIDEO_PATH + videoFiles[videoId], onTextureLoaded);
         } else {
             let imageId = floor(random(imageFiles.length));
-            myTexture = loadImage(imageFiles[imageId], onTextureLoaded);
+            myTexture = loadImage(IMAGE_PATH + imageFiles[imageId], onTextureLoaded);
         }
     }
 
@@ -353,10 +353,10 @@ function generateRandomModel() {
     // Choose Video vs Image
     if (myBgIsVideo) {
         let videoId = floor(random(videoFiles.length));
-        bg = createVideo(videoFiles[videoId], onBGLoaded);
+        bg = createVideo(VIDEO_PATH + videoFiles[videoId], onBGLoaded);
     } else {
         let imageId = floor(random(imageFiles.length));
-        bg = loadImage(imageFiles[imageId], onBGLoaded);
+        bg = loadImage(IMAGE_PATH + imageFiles[imageId], onBGLoaded);
     }
 
     bgScaleF = 1 + floor(random(1, 4)) * (random() < 0.5);

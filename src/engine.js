@@ -418,16 +418,19 @@ function getFiles(path) {
 
     let ret = xmlHttp.responseText;
     let contentList = ret.split('\n');
+    //console.log(contentList);
 
     for (let i = 0; i < contentList.length; i++) {
-        const rx = /href=\"(.*)\"\sclass/;
+        //const rx = /href=\"(.*)\"\sclass/;
+        const rx = /href=\"(.+)\?/;
         let found = rx.exec(contentList[i]);
 
-        if ((found !== null) && (found[1] !== "/")) {
+        if ((found !== null) && (found[1] !== "../")) {
             files.push(found[1]);
         }
     }
 
+    console.log(files);
     return files;
 }
 
