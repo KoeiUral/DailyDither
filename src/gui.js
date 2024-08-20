@@ -337,7 +337,7 @@ function generateRandomModel() {
     hueIncInput.value(hueInc);
     hueMadInput.value(flashOffset);
     fgSatSlider.value(satLevelFg);
-    checkDither.checked = isDitherOn;  // NOT WORKING for check box
+    checkDither.value(isDitherOn);  // NOT WORKING for check box
     checkBW.value(isBWOn);  // NOT WORKING for check box
 
     let pointsNbr = floor(random(10));
@@ -372,7 +372,7 @@ function generateRandomModel() {
     hueIncInputBg.value(hueIncBg);
     hueMadInputBg.value(flashOffsetBg);
     bgSatSlider.value(satLevelBg);
-    bgCheckDither.checked = isBgDitherOn;  // NOT WORKING for check box
+    bgCheckDither.value(isBgDitherOn);  // NOT WORKING for check box
     bgCheckBW.value(isBgBWOn);  // NOT WORKING for check box
 
     createGlitchSequence();
