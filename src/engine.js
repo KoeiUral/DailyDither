@@ -81,6 +81,7 @@ let glitchCurrentStep = 0;
 let nextGlitchFrames = 0;
 let glitchWaitTime = 0;
 let glitchSequence = [];
+let glitchAutoLoop = false;
 
 let glitchEffects = [];
 let glitchFrames = 0;
@@ -285,6 +286,8 @@ function glitchBg(image) {
                 GlitchWarp(image, glitchWarpOffset);
             } else if (glitchEffects[i]  == 4) {
                 GlitchPixelBurn(image, glitchBurnThresh);
+            } else if (glitchEffects[i]  == 5) {
+                GlitchPixelNegative(image);
             }
         }
         glitchFrames--;
@@ -302,6 +305,8 @@ function glitchFg(image) {
                 GlitchWarp(image, fgGlitchWarpOffset * scaleF);
             } else if (fgGlitchEffects[i]  == 4) {
                 GlitchPixelBurn(image, fgGlitchBurnThresh);
+            } else if (fgGlitchEffects[i]  == 5) {
+                GlitchPixelNegative(image);
             }
         }
 
@@ -344,10 +349,12 @@ function configureGlitchParams(glitchList) {
     return sequenceTime;
 }
 
-function createGlitchSequence() {
+function createGlitchSequence(isLoopOn) {
     let stepNbr = parseInt(random(2, MAX_SEQ_STEP));
-    const MAX_GLITCH = 4;
+    const MAX_GLITCH = 5;
 
+    glitchAutoLoop = isLoopOn;
+    
     /* Clear the list of selcetd glitches */
     glitchSequence.length = 0;
 
@@ -391,12 +398,18 @@ function checkGlitchAutomaticSeq() {
             glitchCurrentState = GlitchSeqState.WAIT;
             glitchCurrentStep++;
         } else { // if end of seq
-            // Reset all and set SeqState to IDLE
             glitchCurrentStep = 0;
-            glitchFrames = 0;
-            nextGlitchFrames = 0;
-            glitchWaitTime = 0;
-            glitchCurrentState = GlitchSeqState.IDLE;
+            if (glitchAutoLoop) {
+                nextGlitchFrames = configureGlitchParams(glitchEffects);
+                glitchWaitTime = STEP_WAIT_TIME;
+                glitchCurrentState = GlitchSeqState.WAIT;
+            } else {
+                // Reset all and set SeqState to IDLE
+                glitchFrames = 0;
+                nextGlitchFrames = 0;
+                glitchWaitTime = 0;
+                glitchCurrentState = GlitchSeqState.IDLE;
+            }
         }  
     } // else glitch is running
     

@@ -17,7 +17,7 @@ let fgSatSlider, bgSatSlider;
 let checkDither, checkBW;
 let bgCheckDither, bgCheckBW;
 let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
-let glitchPreCheck, glitchTriggerBtn, glitchRandomBtn;
+let glitchPreCheck, glitchLoopCheck, glitchTriggerBtn, glitchRandomBtn;
 let checkMixer;
 let gifDurationInput;
 let gifBtn, webmBtn;
@@ -289,6 +289,15 @@ function preGlitchCheckEvent() {
     isPreGlitchOn = this.checked();
 }
 
+function glitchAutoLoopCheckEvent() {
+    glitchAutoLoop = this.checked();
+}
+
+function activateAutoSequence() {
+    createGlitchSequence(glitchLoopCheck.checked());
+}
+
+
 function updateGifPeriof() {
     let tempVal = parseInt(this.value());
     recDuration = (isNaN(tempVal)) ? 0 : tempVal;
@@ -375,11 +384,8 @@ function generateRandomModel() {
     bgCheckDither.value(isBgDitherOn);  // NOT WORKING for check box
     bgCheckBW.value(isBgBWOn);  // NOT WORKING for check box
 
-    createGlitchSequence();
-
-    
+    createGlitchSequence(true);
 }
-
 
 /**
  * Create the Gui: create widgets and set them up
@@ -475,6 +481,7 @@ function create_gui() {
     fgGlitchSelect.option('SCRAMBLE', 2);
     fgGlitchSelect.option('WARP', 3);
     fgGlitchSelect.option('BURN', 4);
+    fgGlitchSelect.option('NEG', 5);
     fgGlitchDurInput = createInput('0');
     fgGlitchDurInput.size(WIDGET_SIZE);
     fgGlitchPreCheck = createCheckbox('PreGlitch', true);
@@ -562,14 +569,17 @@ function create_gui() {
     glitchSelect.option('SCRAMBLE', 2);
     glitchSelect.option('WARP', 3);
     glitchSelect.option('BURN', 4);
+    glitchSelect.option('NEG', 5);
     glitchDurInput = createInput('0');
     glitchDurInput.size(WIDGET_SIZE);
     glitchPreCheck = createCheckbox('PreGlitch', true);
     glitchPreCheck.changed(preGlitchCheckEvent);
+    glitchLoopCheck = createCheckbox('AutoLoop', false);
+    glitchLoopCheck.changed(glitchAutoLoopCheckEvent);
     glitchTriggerBtn = createButton('TRIGGER');
     glitchTriggerBtn.mousePressed(startGlitch);
     glitchRandomBtn = createButton('RANDOM');
-    glitchRandomBtn.mousePressed(createGlitchSequence);
+    glitchRandomBtn.mousePressed(activateAutoSequence);
 
     /* Hook widget to html */
     bgSelector.parent('html_bgSelector');
@@ -583,6 +593,7 @@ function create_gui() {
     glitchSelect.parent('html_bgGlitchSelect');
     glitchDurInput.parent('html_bgGlitchDurInput');
     glitchPreCheck.parent('html_bgGlitchPreCheck');
+    glitchLoopCheck.parent('html_bgGlitchLoopCheck');  
     glitchTriggerBtn.parent('html_bgGlitchTriggerBtn');
     glitchRandomBtn.parent('html_bgGlitchRandomBtn');
 

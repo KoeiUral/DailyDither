@@ -573,3 +573,19 @@ function GlitchPixelBurn(srcImg, thresholdColor) {
 	}
 	srcImg.updatePixels();
 }
+
+function GlitchPixelNegative(srcImg) {
+	//var thresholdColor = [random(255),random(255),random(255)];
+	srcImg.loadPixels();
+
+    for (let x = 0; x < srcImg.width; x++) {
+		for (let y = 0; y < srcImg.height; y++) {
+			let i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+			srcImg.pixels[i]     = 255 - srcImg.pixels[i];
+			srcImg.pixels[i + 1] = 255 - srcImg.pixels[i + 1];
+			srcImg.pixels[i + 2] = 255 - srcImg.pixels[i + 2];
+		}
+	}
+	srcImg.updatePixels();
+}
