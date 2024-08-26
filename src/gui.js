@@ -14,13 +14,17 @@ let pointMouseCheck, trSpeedSlider;
 let scaleInput, bgScaleInput, madInput, madInputFg, madInputBg;
 let hueOffInput, hueIncInput, hueMadInput, hueOffInputBg, hueIncInputBg, hueMadInputBg;
 let fgSatSlider, bgSatSlider;
-let checkDither, checkBW;
-let bgCheckDither, bgCheckBW;
+let checkDither, checkBW; //TODO: remove unused variable checkDither
+let fgSelectDither, fgColorDither, fgDimensionDither; 
+let bgCheckDither, bgCheckBW;  // TODO: remove unused variable bgCheckDither
+let bgSelectDither, bgColorDither, bgDimensionDither; 
 let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
 let glitchPreCheck, glitchLoopCheck, glitchTriggerBtn, glitchRandomBtn;
 let checkMixer;
 let gifDurationInput;
 let gifBtn, webmBtn;
+
+
 
 
 /**
@@ -69,8 +73,8 @@ function handleBGFile(file) {
 
 function updateXrot() {
     let tempVal = parseFloat(this.value());
-    xRot = (isNaN(tempVal)) ? xRot : tempVal;
-    console.log(tempVal + " -> " + xRot);
+    zRot = (isNaN(tempVal)) ? zRot : tempVal;
+    //console.log(tempVal + " -> " + xRot);
 }
 
 function updateYrot() {
@@ -80,7 +84,7 @@ function updateYrot() {
 
 function updateZrot() {
     let tempVal = parseFloat(this.value());
-    zRot = (isNaN(tempVal)) ? zRot : tempVal;
+    xRot = (isNaN(tempVal)) ? xRot : tempVal;
 }
 
 function p1CheckEvent() {
@@ -262,15 +266,44 @@ function updateMadnessBg() {
 
 
 function ditherCheckEvent() {
-    isDitherOn = this.checked();
+    isDitherOn = parseInt(this.selected());
+}
+
+function updateColDither() {
+    let tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal >= 1)) {
+        fgColDither = tempVal;
+    }
+}
+
+function updateDimDither() {
+    let tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal > 1) && (tempVal <= 8)) {
+        fgDimDither = tempVal;
+    }
 }
 
 function bwCheckEvent() {
     isBWOn = this.checked();
 }
 
+
 function bgDitherCheckEvent() {
-    isBgDitherOn = this.checked();
+    isBgDitherOn = parseInt(this.selected());
+}
+
+function updateBgColDither() {
+    let tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal >= 1)) {
+        bgColDither = tempVal;
+    }
+}
+
+function updateBgDimDither() {
+    let tempVal = parseInt(this.value());
+    if ((tempVal !== NaN) && (tempVal > 1) && (tempVal <= 8)) {
+        bgDimDither = tempVal;
+    }
 }
 
 function bgBwCheckEvent() {
@@ -338,7 +371,7 @@ function generateRandomModel() {
     hueInc = floor(random(0, 15)) * (random() < 0.5);
     flashOffset = floor(random(0, 20)) * (random() < 0.5);
     satLevelFg = floor(random()) * (random() < 0.5);
-    isDitherOn = (random() < 0.7);
+    isDitherOn = floor(random(1, 3)) * (random() < 0.7);
     isBWOn = (random() < 0.3);
 
     scaleInput.value(scaleF);
@@ -346,7 +379,8 @@ function generateRandomModel() {
     hueIncInput.value(hueInc);
     hueMadInput.value(flashOffset);
     fgSatSlider.value(satLevelFg);
-    checkDither.value(isDitherOn);  // NOT WORKING for check box
+    //checkDither.value(isDitherOn);  // NOT WORKING for check box
+    fgSelectDither.value(isDitherOn);
     checkBW.value(isBWOn);  // NOT WORKING for check box
 
     let pointsNbr = floor(random(10));
@@ -373,7 +407,7 @@ function generateRandomModel() {
     hueIncBg = floor(random(0, 15)) * (random() < 0.5);
     flashOffsetBg = floor(random(0, 20)) * (random() < 0.5);
     satLevelBg = floor(random()) * (random() < 0.5);
-    isBgDitherOn = (random() < 0.7);
+    isBgDitherOn = floor(random(1, 3)) * (random() < 0.7);
     isBgBWOn =  (random() < 0.3);
 
     bgScaleInput.value(bgScaleF);
@@ -381,7 +415,8 @@ function generateRandomModel() {
     hueIncInputBg.value(hueIncBg);
     hueMadInputBg.value(flashOffsetBg);
     bgSatSlider.value(satLevelBg);
-    bgCheckDither.value(isBgDitherOn);  // NOT WORKING for check box
+    //bgCheckDither.value(isBgDitherOn);  // NOT WORKING for check box
+    bgSelectDither.value(isBgDitherOn);
     bgCheckBW.value(isBgBWOn);  // NOT WORKING for check box
 
     createGlitchSequence(true);
@@ -457,8 +492,19 @@ function create_gui() {
     scaleInput = createInput('1');
     scaleInput.size(WIDGET_SIZE);
     scaleInput.input(updateScale);
-    checkDither = createCheckbox('Dither FG', false);
-    checkDither.changed(ditherCheckEvent);
+
+    fgSelectDither = createSelect(true);
+    fgSelectDither.option('NONE', 0);
+    fgSelectDither.option('DIFFUSION', 1);
+    fgSelectDither.option('ORDERED', 2);
+    fgSelectDither.changed(ditherCheckEvent);
+    fgSelectDither.size(75, 65);
+    fgColorDither = createInput('2');
+    fgColorDither.size(WIDGET_SIZE);
+    fgColorDither.input(updateColDither);
+    fgDimensionDither = createInput('2');
+    fgDimensionDither.size(WIDGET_SIZE);
+    fgDimensionDither.input(updateDimDither);
     checkBW = createCheckbox('B&W FG', false);
     checkBW.changed(bwCheckEvent);
 
@@ -474,7 +520,6 @@ function create_gui() {
     fgSatSlider = createSlider(0, 1, 0, 0.05);
     fgSatSlider.size(120);
     fgSatSlider.changed(updateFgSaturation);
-
 
     fgGlitchSelect = createSelect(true);
     fgGlitchSelect.option('SCAN', 1);
@@ -510,7 +555,9 @@ function create_gui() {
     pointMouseCheck.parent('html_pointMouseCheck');
     pointClearBtn.parent('html_pointClearBtn');
     trSpeedSlider.parent('html_trSpeedSlider');
-    checkDither.parent('html_fgCheckDither');
+    fgSelectDither.parent('html_fgSelectDither');
+    fgColorDither.parent('html_fgColorDither');
+    fgDimensionDither.parent('html_fgDimDither');  
     checkBW.parent('html_fgCheckBW');
     scaleInput.parent('html_fgScaleInput');
     hueOffInput.parent('html_fgHueInput');
@@ -546,8 +593,18 @@ function create_gui() {
     bgScaleInput = createInput('1');
     bgScaleInput.size(WIDGET_SIZE);
     bgScaleInput.input(updateBGScale);
-    bgCheckDither = createCheckbox('Dither BG', false);
-    bgCheckDither.changed(bgDitherCheckEvent);
+    bgSelectDither = createSelect(true);
+    bgSelectDither.option('NONE', 0);
+    bgSelectDither.option('DIFFUSION', 1);
+    bgSelectDither.option('ORDERED', 2);
+    bgSelectDither.changed(bgDitherCheckEvent);
+    bgSelectDither.size(75, 65);
+    bgColorDither = createInput('2');
+    bgColorDither.size(WIDGET_SIZE);
+    bgColorDither.input(updateBgColDither);
+    bgDimensionDither = createInput('2');
+    bgDimensionDither.size(WIDGET_SIZE);
+    bgDimensionDither.input(updateBgDimDither);
     bgCheckBW = createCheckbox('B&W BG', false);
     bgCheckBW.changed(bgBwCheckEvent);
 
@@ -583,7 +640,9 @@ function create_gui() {
 
     /* Hook widget to html */
     bgSelector.parent('html_bgSelector');
-    bgCheckDither.parent('html_bgCheckDither');
+    bgSelectDither.parent('html_bgSelectDither');
+    bgColorDither.parent('html_bgColorDither');
+    bgDimensionDither.parent('html_bgDimDither');
     bgCheckBW.parent('html_bgCheckBW');
     bgScaleInput.parent('html_bgScaleInput');
     hueOffInputBg.parent('html_bgHueInput');

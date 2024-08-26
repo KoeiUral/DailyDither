@@ -54,6 +54,11 @@ let myBgIsVideo = false;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
 let isBgDitherOn, isBgBWOn;
+let fgColDither = 2;
+let fgDimDither = 2;
+let bgColDither = 2;
+let bgDimDither = 2;
+
 let isMixerOn = false;
 
 let fgGlitchEffects = [];
@@ -460,6 +465,7 @@ function init_engine () {
     initFonts(fontImage);
     initNoise();
     initTargets();
+    initBayerMatrix();
 }
 
 function render() {
@@ -485,8 +491,10 @@ function render() {
             ShiftHue(bgImage, hueOffsetBg, flashOffsetBg, satLevelBg);
         }
 
-        if (isBgDitherOn) {
+        if (isBgDitherOn === 1) {
             ditherIt(bgImage, isBgBWOn, depthBg); 
+        } else if (isBgDitherOn === 2) {
+            BayerDithering(bgImage, bgColDither, bgDimDither);
         }
 
         finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
@@ -518,8 +526,10 @@ function render() {
             ShiftHue(image2D, hueOffset, flashOffset, satLevelFg);
         }
 
-        if (isDitherOn) {
+        if (isDitherOn === 1) {
             ditherIt(image2D, isBWOn, depthFg); 
+        } else if (isDitherOn === 2) {
+            BayerDithering(image2D, fgColDither, fgDimDither);
         }
 
         // Upscale back the image

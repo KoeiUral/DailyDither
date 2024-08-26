@@ -9,6 +9,7 @@ let fontMap = [];
 
 let noiseGen;
 let zOff;
+let M = [];
 
 
 function updateColorDepth(depth) {
@@ -123,6 +124,50 @@ function ditherIt(srcImg, greyScale, depthOffset) {
         }
     }
     
+    srcImg.updatePixels();
+}
+
+function initBayerMatrix() {
+    //initilize constants
+    const DIM = 8;
+    const DIM_2 = DIM * DIM;
+
+    //define threshold map
+    M = [[0,32,8,40,2,34,10,42],
+         [48,16,56,24,50,18,58,26],
+         [12,44,4,36,14,46,6,38],
+         [60,28,52,20,62,30,54,22],
+         [3,35,11,43,1,33,9,41],
+         [51,19,59,27,49,17,57,25],
+         [15,47,7,39,13,45,5,37],
+         [63,31,55,23,61,29,53,21]];
+
+    for(let i = 0; i < DIM; i++) {
+        for(let j = 0; j < DIM; j++) {
+            M[i][j] = M[i][j] / (DIM_2); 
+        }
+    }
+}
+
+function BayerDithering(srcImg, colors, dim) {
+    const f = (colors - 1) / 255;
+    const c_ = (colors - 1);
+    let i, T;
+
+    srcImg.loadPixels();
+
+    for (let y = 0; y < srcImg.height - 1; y++) {
+        for (let x = 1; x < srcImg.width - 1; x++) { 
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+            T = M[x % dim][y % dim];
+
+            srcImg.pixels[i    ] = 255 * Math.floor(T + srcImg.pixels[i    ] * f) / c_;
+            srcImg.pixels[i + 1] = 255 * Math.floor(T + srcImg.pixels[i + 1] * f) / c_;
+            srcImg.pixels[i + 2] = 255 * Math.floor(T + srcImg.pixels[i + 2] * f) / c_;
+            //srcImg.pixels[i+3] = 255;
+        }  
+    }
+
     srcImg.updatePixels();
 }
 
