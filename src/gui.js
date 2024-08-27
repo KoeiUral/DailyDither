@@ -299,6 +299,10 @@ function fgAsciiCheckEvent() {
     }
 }
 
+function fgAsciiColorCheckEvent() {
+    isFgAsciiColor = this.checked(); 
+}
+
 
 function bgDitherCheckEvent() {
     isBgDitherOn = parseInt(this.selected());
@@ -332,6 +336,10 @@ function bgAsciiCheckEvent() {
         bgScaleF = 1;
         bgScaleInput.value(bgScaleF);
     }
+}
+
+function bgAsciiColorCheckEvent() {
+    isBgAsciiColor = this.checked(); 
 }
 
 function mixCheckEvent() {
@@ -397,15 +405,19 @@ function generateRandomModel() {
     satLevelFg = floor(random()) * (random() < 0.5);
     isDitherOn = floor(random(1, 3)) * (random() < 0.7);
     isBWOn = (random() < 0.3);
+    isAsciiOn = (random() < 0.3);
+    isFgAsciiColor = (random() < 0.2);
+    scaleF = (isAsciiOn) ? 8 : scaleF;
 
     scaleInput.value(scaleF);
     hueOffInput.value(hueOffset);
     hueIncInput.value(hueInc);
     hueMadInput.value(flashOffset);
     fgSatSlider.value(satLevelFg);
-    //checkDither.value(isDitherOn);  // NOT WORKING for check box
     fgSelectDither.value(isDitherOn);
     checkBW.value(isBWOn);  // NOT WORKING for check box
+    fgCheckAscii.value(isAsciiOn);  // NOT WORKING for check box
+    fgCheckAsciiColor.value(isFgAsciiColor);  // NOT WORKING for check box
 
     let pointsNbr = floor(random(10));
     for (let i = 0; i < pointsNbr; i++) {
@@ -433,15 +445,19 @@ function generateRandomModel() {
     satLevelBg = floor(random()) * (random() < 0.5);
     isBgDitherOn = floor(random(1, 3)) * (random() < 0.7);
     isBgBWOn =  (random() < 0.3);
+    isBgAsciiOn = (random() < 0.3);
+    isBgAsciiColor = (random() < 0.2);
+    bgScaleF = (isBgAsciiOn) ? 8 : bgScaleF;
 
     bgScaleInput.value(bgScaleF);
     hueOffInputBg.value(hueOffsetBg);
     hueIncInputBg.value(hueIncBg);
     hueMadInputBg.value(flashOffsetBg);
     bgSatSlider.value(satLevelBg);
-    //bgCheckDither.value(isBgDitherOn);  // NOT WORKING for check box
     bgSelectDither.value(isBgDitherOn);
     bgCheckBW.value(isBgBWOn);  // NOT WORKING for check box
+    bgCheckAscii.value(isBgAsciiOn);  // NOT WORKING for check box
+    bgCheckAsciiColor.value(isBgAsciiColor);  // NOT WORKING for check box
 
     createGlitchSequence(true);
 }
@@ -533,6 +549,8 @@ function create_gui() {
     checkBW.changed(bwCheckEvent);
     fgCheckAscii = createCheckbox('Ascii', false);
     fgCheckAscii.changed(fgAsciiCheckEvent);
+    fgCheckAsciiColor = createCheckbox('Color', false);
+    fgCheckAsciiColor.changed(fgAsciiColorCheckEvent);
 
     hueOffInput = createInput('0');
     hueOffInput.size(WIDGET_SIZE);
@@ -586,6 +604,7 @@ function create_gui() {
     fgDimensionDither.parent('html_fgDimDither');  
     checkBW.parent('html_fgCheckBW');
     fgCheckAscii.parent('html_fgCheckAscii');
+    fgCheckAsciiColor.parent('html_fgCheckAsciiColor');
     scaleInput.parent('html_fgScaleInput');
     hueOffInput.parent('html_fgHueInput');
     hueIncInput.parent('html_fgHueIncInput');
@@ -636,6 +655,8 @@ function create_gui() {
     bgCheckBW.changed(bgBwCheckEvent);
     bgCheckAscii = createCheckbox('Ascii', false);
     bgCheckAscii.changed(bgAsciiCheckEvent);
+    bgCheckAsciiColor = createCheckbox('Color', false);
+    bgCheckAsciiColor.changed(bgAsciiColorCheckEvent);
 
     hueOffInputBg = createInput('0');
     hueOffInputBg.size(WIDGET_SIZE);
@@ -674,6 +695,7 @@ function create_gui() {
     bgDimensionDither.parent('html_bgDimDither');
     bgCheckBW.parent('html_bgCheckBW');
     bgCheckAscii.parent('html_bgCheckAscii');
+    bgCheckAsciiColor.parent('html_bgCheckAsciiColor');
     bgScaleInput.parent('html_bgScaleInput');
     hueOffInputBg.parent('html_bgHueInput');
     hueIncInputBg.parent('html_bgHueIncInput');

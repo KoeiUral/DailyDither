@@ -288,14 +288,11 @@ function textify(grayLevel, x, y, w, h, grayFlag) {
     text(pixelChar, x * w + w * 0.5, y * h + h * 0.5);  
 }
 
-function asciifyIt(srcImg, scale, font) {
+function asciifyIt(srcImg, scale, font, colorFlag) {
     let x, y;
     let grayLevel;
     let pixelChar;
     let grphCtx = createGraphics(srcImg.width * scale, srcImg.height * scale);
-
-    //let w = scale;//width / srcImg.width;
-    //let h = scale;//height / srcImg.height;
 
     srcImg.loadPixels();
     noStroke();
@@ -315,7 +312,13 @@ function asciifyIt(srcImg, scale, font) {
             
                 grphCtx.fill(0);
                 grphCtx.rect(x * scale, y * scale, scale, scale);
-                grphCtx.fill(255);
+
+                if (colorFlag) {
+                    grphCtx.fill(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
+                } else {
+                    grphCtx.fill(255);
+                }
+
                 grphCtx.textSize(scale);
                 grphCtx.textAlign(CENTER, CENTER);
                 grphCtx.text(pixelChar, x * scale + scale * 0.5, y * scale + scale * 0.5);  

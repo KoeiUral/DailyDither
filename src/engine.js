@@ -55,8 +55,8 @@ let myTexture;
 let bg;
 let myBgIsVideo = false;
 
-let isAsciiOn, isDitherOn, isBWOn, isMatOn;
-let isBgDitherOn, isBgBWOn, isBgAsciiOn;
+let isAsciiOn, isFgAsciiColor, isDitherOn, isBWOn, isMatOn;
+let isBgDitherOn, isBgBWOn, isBgAsciiOn, isBgAsciiColor;
 let fgColDither = 2;
 let fgDimDither = 2;
 let bgColDither = 2;
@@ -515,7 +515,7 @@ function render() {
         }
 
         if ((isBgAsciiOn) && (fontReady)) {
-            finalBg = asciifyIt(bgImage, bgScaleF, myFont); 
+            finalBg = asciifyIt(bgImage, bgScaleF, myFont, isBgAsciiColor); 
         } else {
             finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
         }
@@ -555,7 +555,7 @@ function render() {
         }
 
         if ((isAsciiOn) && (fontReady)) {
-            finalFg = asciifyIt(image2D, scaleF, myFont); 
+            finalFg = asciifyIt(image2D, scaleF, myFont, isFgAsciiColor); 
         } else {
             // Upscale back the image
             finalFg = upScale(image2D, finalFg, scaleF, depthFg);
