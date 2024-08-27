@@ -287,6 +287,18 @@ function bwCheckEvent() {
     isBWOn = this.checked();
 }
 
+function fgAsciiCheckEvent() {
+    isAsciiOn = this.checked();
+
+    if (isAsciiOn) {
+        scaleF = 8;
+        scaleInput.value(scaleF);
+    } else {
+        scaleF = 1;
+        scaleInput.value(scaleF);
+    }
+}
+
 
 function bgDitherCheckEvent() {
     isBgDitherOn = parseInt(this.selected());
@@ -308,6 +320,18 @@ function updateBgDimDither() {
 
 function bgBwCheckEvent() {
     isBgBWOn = this.checked();
+}
+
+function bgAsciiCheckEvent() {
+    isBgAsciiOn = this.checked();
+
+    if (isBgAsciiOn) {
+        bgScaleF = 8;
+        bgScaleInput.value(bgScaleF);
+    } else {
+        bgScaleF = 1;
+        bgScaleInput.value(bgScaleF);
+    }
 }
 
 function mixCheckEvent() {
@@ -507,6 +531,8 @@ function create_gui() {
     fgDimensionDither.input(updateDimDither);
     checkBW = createCheckbox('B&W FG', false);
     checkBW.changed(bwCheckEvent);
+    fgCheckAscii = createCheckbox('Ascii', false);
+    fgCheckAscii.changed(fgAsciiCheckEvent);
 
     hueOffInput = createInput('0');
     hueOffInput.size(WIDGET_SIZE);
@@ -559,6 +585,7 @@ function create_gui() {
     fgColorDither.parent('html_fgColorDither');
     fgDimensionDither.parent('html_fgDimDither');  
     checkBW.parent('html_fgCheckBW');
+    fgCheckAscii.parent('html_fgCheckAscii');
     scaleInput.parent('html_fgScaleInput');
     hueOffInput.parent('html_fgHueInput');
     hueIncInput.parent('html_fgHueIncInput');
@@ -607,6 +634,8 @@ function create_gui() {
     bgDimensionDither.input(updateBgDimDither);
     bgCheckBW = createCheckbox('B&W BG', false);
     bgCheckBW.changed(bgBwCheckEvent);
+    bgCheckAscii = createCheckbox('Ascii', false);
+    bgCheckAscii.changed(bgAsciiCheckEvent);
 
     hueOffInputBg = createInput('0');
     hueOffInputBg.size(WIDGET_SIZE);
@@ -644,6 +673,7 @@ function create_gui() {
     bgColorDither.parent('html_bgColorDither');
     bgDimensionDither.parent('html_bgDimDither');
     bgCheckBW.parent('html_bgCheckBW');
+    bgCheckAscii.parent('html_bgCheckAscii');
     bgScaleInput.parent('html_bgScaleInput');
     hueOffInputBg.parent('html_bgHueInput');
     hueIncInputBg.parent('html_bgHueIncInput');

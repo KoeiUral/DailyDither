@@ -4,11 +4,14 @@ const DEFAULT_H = 600;
 const MODEL_PATH = './media/model/';
 const IMAGE_PATH = './media/image/';
 const VIDEO_PATH = './media/video/';
+const FONT_PATH = './font/C64_Pro_Mono-STYLE.ttf';
 
 let myCanvas;
 let modelReady = false;
 let textureReady = false;
 let myTexIsVideo = false;
+let fontReady = false;
+let myFont;
 let bgReady = false;
 let myModel;
 let xRot = 0;
@@ -53,7 +56,7 @@ let bg;
 let myBgIsVideo = false;
 
 let isAsciiOn, isDitherOn, isBWOn, isMatOn;
-let isBgDitherOn, isBgBWOn;
+let isBgDitherOn, isBgBWOn, isBgAsciiOn;
 let fgColDither = 2;
 let fgDimDither = 2;
 let bgColDither = 2;
@@ -136,31 +139,33 @@ function startFgGlitch() {
     fgGlitchEffects.length = 0;
     fgGlitchEffects = fgGlitchSelect.selected(); // TODO REMOVE DEP
 
+    let scale = (isPreGlitchOnFg) ? scaleF : 1;
+
     for (let i = 0; i < fgGlitchEffects.length; i++) {
         if (fgGlitchEffects[i] == 1) {
             fgGlitchScanDir = random(1);
-            fgGlitchScanX = floor(random(DEFAULT_W / scaleF));
-            fgGlitchScanY = floor(random(DEFAULT_H / scaleF));
+            fgGlitchScanX = floor(random(DEFAULT_W / scale));
+            fgGlitchScanY = floor(random(DEFAULT_H / scale));
         } else if (fgGlitchEffects[i] == 2) {
             fgGlitchHoles.length = 0;
             let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
     
             for (let i = 0; i < N; i++) {
-                let srcX = floor(random(DEFAULT_W / scaleF));
-                let srcY = floor(random(DEFAULT_H / scaleF));
-                let srcW = floor(random(DEFAULT_W / scaleF));
-                let srcH = floor(random(DEFAULT_H / scaleF));
+                let srcX = floor(random(DEFAULT_W / scale));
+                let srcY = floor(random(DEFAULT_H / scale));
+                let srcW = floor(random(DEFAULT_W / scale));
+                let srcH = floor(random(DEFAULT_H / scale));
                 
-                let dstX = floor(random(DEFAULT_W / scaleF));
-                let dstY = floor(random(DEFAULT_H / scaleF));
-                let dstW = floor(random(DEFAULT_W / scaleF));
-                let dstH = floor(random(DEFAULT_H / scaleF));
+                let dstX = floor(random(DEFAULT_W / scale));
+                let dstY = floor(random(DEFAULT_H / scale));
+                let dstW = floor(random(DEFAULT_W / scale));
+                let dstH = floor(random(DEFAULT_H / scale));
     
                 fgGlitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
                                      dx: dstX, dy: dstY , dw: dstW, dh: dstH});
             }
         } else if (fgGlitchEffects[i] == 3) {
-            fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scaleF));
+            fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scale));
         } else if (fgGlitchEffects[i] == 4) {
             fgGlitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
         }
@@ -301,13 +306,15 @@ function glitchBg(image) {
 
 function glitchFg(image) {
     if (fgGlitchFrames > 0) {
+        let scale = (isPreGlitchOnFg) ? scaleF : 1;
+
         for (let i = 0; i < fgGlitchEffects.length; i++) {
             if (fgGlitchEffects[i] == 1) {
-                GlitchScanner(image,  fgGlitchScanDir, fgGlitchScanX * scaleF, fgGlitchScanY * scaleF);
+                GlitchScanner(image,  fgGlitchScanDir, fgGlitchScanX * scale, fgGlitchScanY * scale);
             } else if (fgGlitchEffects[i]  == 2) {
-                GlitchScramble(image, fgGlitchHoles, scaleF);
+                GlitchScramble(image, fgGlitchHoles, scale);
             } else if (fgGlitchEffects[i]  == 3) {
-                GlitchWarp(image, fgGlitchWarpOffset * scaleF);
+                GlitchWarp(image, fgGlitchWarpOffset * scale);
             } else if (fgGlitchEffects[i]  == 4) {
                 GlitchPixelBurn(image, fgGlitchBurnThresh);
             } else if (fgGlitchEffects[i]  == 5) {
@@ -320,31 +327,34 @@ function glitchFg(image) {
 }
 
 function configureGlitchParams(glitchList) {
+    let scale = (isPreGlitchOn) ? bgScaleF : 1;
+
     for (let i = 0; i < glitchList.length; i++) {
         if (glitchList[i] == 1) {
             glitchScanDir = random(1);
-            glitchScanX = floor(random(DEFAULT_W / bgScaleF));
-            glitchScanY = floor(random(DEFAULT_H / bgScaleF));
+            glitchScanX = floor(random(DEFAULT_W / scale));
+            glitchScanY = floor(random(DEFAULT_H / scale));
         } else if (glitchList[i] == 2) {
             glitchHoles.length = 0;
             let N = floor(random (5, 20)); //TODO: MAGIC NUMBER
+
     
             for (let i = 0; i < N; i++) {
-                let srcX = floor(random(DEFAULT_W / bgScaleF));
-                let srcY = floor(random(DEFAULT_H / bgScaleF));
-                let srcW = floor(random(DEFAULT_W / bgScaleF));
-                let srcH = floor(random(DEFAULT_H / bgScaleF));
+                let srcX = floor(random(DEFAULT_W / scale));
+                let srcY = floor(random(DEFAULT_H / scale));
+                let srcW = floor(random(DEFAULT_W / scale));
+                let srcH = floor(random(DEFAULT_H / scale));
                 
-                let dstX = floor(random(DEFAULT_W / bgScaleF));
-                let dstY = floor(random(DEFAULT_H / bgScaleF));
-                let dstW = floor(random(DEFAULT_W / bgScaleF));
-                let dstH = floor(random(DEFAULT_H / bgScaleF));
+                let dstX = floor(random(DEFAULT_W / scale));
+                let dstY = floor(random(DEFAULT_H / scale));
+                let dstW = floor(random(DEFAULT_W / scale));
+                let dstH = floor(random(DEFAULT_H / scale));
     
                 glitchHoles.push({ sx: srcX, sy: srcY , sw: srcW, sh: srcH,
                                    dx: dstX, dy: dstY , dw: dstW, dh: dstH});
             }
         } else if (glitchList[i] == 3) {
-            glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / bgScaleF));
+            glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scale));
         } else if (glitchList[i] == 4) {
             glitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
         }
@@ -452,6 +462,9 @@ function getFiles(path) {
     return files;
 }
 
+function onFontLoaded() {
+    fontReady = true;
+}
 
 function init_engine () {
     pixelDensity(1);
@@ -466,7 +479,11 @@ function init_engine () {
     initNoise();
     initTargets();
     initBayerMatrix();
+
+    // load font
+    myFont = loadFont(FONT_PATH, onFontLoaded);
 }
+
 
 function render() {
     background(0);
@@ -497,7 +514,12 @@ function render() {
             BayerDithering(bgImage, bgColDither, bgDimDither);
         }
 
-        finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
+        if ((isBgAsciiOn) && (fontReady)) {
+            finalBg = asciifyIt(bgImage, bgScaleF, myFont); 
+        } else {
+            finalBg = upScale(bgImage, finalBg, bgScaleF, depthBg);
+        }
+
 
         if (isPreGlitchOn === false) {
             glitchBg(finalBg);
@@ -532,8 +554,12 @@ function render() {
             BayerDithering(image2D, fgColDither, fgDimDither);
         }
 
-        // Upscale back the image
-        finalFg = upScale(image2D, finalFg, scaleF, depthFg);
+        if ((isAsciiOn) && (fontReady)) {
+            finalFg = asciifyIt(image2D, scaleF, myFont); 
+        } else {
+            // Upscale back the image
+            finalFg = upScale(image2D, finalFg, scaleF, depthFg);
+        }
 
         if (isPreGlitchOnFg === false) {
             glitchFg(finalFg);

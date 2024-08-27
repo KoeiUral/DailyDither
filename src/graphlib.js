@@ -288,15 +288,19 @@ function textify(grayLevel, x, y, w, h, grayFlag) {
     text(pixelChar, x * w + w * 0.5, y * h + h * 0.5);  
 }
 
-function asciifyIt(srcImg) {
+function asciifyIt(srcImg, scale, font) {
     let x, y;
     let grayLevel;
+    let pixelChar;
+    let grphCtx = createGraphics(srcImg.width * scale, srcImg.height * scale);
 
-    let w = width / srcImg.width;
-    let h = height / srcImg.height;
+    //let w = scale;//width / srcImg.width;
+    //let h = scale;//height / srcImg.height;
 
     srcImg.loadPixels();
     noStroke();
+
+    grphCtx.textFont(font);
 
     // Iterate over each pixel 
     for (y = 0; y < srcImg.height; y++) {
@@ -306,11 +310,20 @@ function asciifyIt(srcImg) {
             grayLevel = toGrayScale(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
 
             if (srcImg.pixels[i+3]===255) {
-                textify (grayLevel, x, y, w, h, FG_GRAY_SCALE);
+                //textify (grayLevel, x, y, scale, scale, FALSE);
+                pixelChar = getCharacterForGrayScale(grayLevel);
+            
+                grphCtx.fill(0);
+                grphCtx.rect(x * scale, y * scale, scale, scale);
+                grphCtx.fill(255);
+                grphCtx.textSize(scale);
+                grphCtx.textAlign(CENTER, CENTER);
+                grphCtx.text(pixelChar, x * scale + scale * 0.5, y * scale + scale * 0.5);  
             }
         }
     }
 
+    return grphCtx.get();
 }
 
 
