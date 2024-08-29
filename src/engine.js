@@ -63,6 +63,7 @@ let bgColDither = 2;
 let bgDimDither = 2;
 
 let isMixerOn = false;
+let isNoiseOn = false;
 
 let fgGlitchEffects = [];
 let fgGlitchFrames = 0;
@@ -72,6 +73,7 @@ let isPreGlitchOnFg = true;
 let fgGlitchHoles = [];
 let fgGlitchWarpOffset = 0;
 let fgGlitchBurnThresh = [];
+let fgDynamicGlitch = false;
 
 const GlitchSeqState = {
     IDLE: 'IDLE',
@@ -317,7 +319,8 @@ function glitchFg(image) {
             } else if (fgGlitchEffects[i]  == 2) {
                 GlitchScramble(image, fgGlitchHoles, scale);
             } else if (fgGlitchEffects[i]  == 3) {
-                GlitchWarp(image, fgGlitchWarpOffset * scale);
+                let factor = (fgDynamicGlitch) ? round(fgGlitchWarpOffset * scale * noise(0.4 * frameCount)) : fgGlitchWarpOffset * scale;
+                GlitchWarp(image, factor);
             } else if (fgGlitchEffects[i]  == 4) {
                 GlitchPixelBurn(image, fgGlitchBurnThresh);
             } else if (fgGlitchEffects[i]  == 5) {
@@ -449,7 +452,6 @@ function getFiles(path) {
 
     let ret = xmlHttp.responseText;
     let contentList = ret.split('\n');
-    //console.log(contentList);
 
     for (let i = 0; i < contentList.length; i++) {
         //const rx = /href=\"(.*)\"\sclass/;
@@ -475,7 +477,6 @@ function init_engine () {
 
     _3dGraph = createGraphics(DEFAULT_W, DEFAULT_H, WEBGL);
     _2dGraph = createGraphics(DEFAULT_W, DEFAULT_H);
-    //_gifGraph = createGraphics(DEFAULT_W, DEFAULT_H);
     webmCapturer = new CCapture( { format: 'webm', display: true } );
 
     initFonts(fontImage);
@@ -528,9 +529,7 @@ function render() {
             glitchBg(finalBg);
         }
 
-        //if (isMixerOn === false) {
-            image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
-        //}
+        image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
     }
 
     if (modelReady) {
@@ -568,22 +567,15 @@ function render() {
             glitchFg(finalFg);
         }
 
-        //if (isMixerOn === false) {
-            image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
-        //}
+        image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
     }
-/*
-    if ((modelReady) && (bgReady) && (isMixerOn)) {
-        let mixImage;
-        mixImage = mixChannelsNoise(finalFg, finalBg, mixImage);
-        image(mixImage, 0, 0, DEFAULT_W, DEFAULT_H);
+
+    if (isNoiseOn) {
+        image(addNoise(0.8), 0, 0);
     }
-*/
+
     /* Save the WEBM  */
     if (webmPeriod > 0) {
-        //let smallImg = get();
-        //.resize(DEFAULT_W / 2, DEFAULT_H / 2);
-
         webmCapturer.capture(document.getElementById('defaultCanvas0'));
         webmPeriod--;
     } else if (webmPeriod == 0) {

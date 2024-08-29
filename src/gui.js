@@ -34,8 +34,6 @@ let gifBtn, webmBtn;
 function handle3DFile(file) {
     modelReady = false;
     myModel = loadModel(MODEL_PATH + file.name, true, onModelLoaded);
-
-    console.log("File Path" + MODEL_PATH + file.name);
 }
 
 function handleTexture(file) {
@@ -64,9 +62,6 @@ function handleBGFile(file) {
         bg = createVideo(VIDEO_PATH + file.name, onBGLoaded);
         myBgIsVideo = true;    
     }
-
-
-
 }
 
 
@@ -374,6 +369,10 @@ function glitchDynamicCheckEvent() {
     bgDynamicGlitch = this.checked();
 }
 
+function glitchFgDynamicCheckEvent() {
+    fgDynamicGlitch = this.checked();
+}
+
 function activateAutoSequence() {
     createGlitchSequence(glitchLoopCheck.checked());
 }
@@ -591,6 +590,8 @@ function create_gui() {
     fgGlitchDurInput.size(WIDGET_SIZE);
     fgGlitchPreCheck = createCheckbox('PreGlitch', true);
     fgGlitchPreCheck.changed(preGlitchFgCheckEvent);
+    fgGlitchDynamicCheck = createCheckbox('Dynamic', false);
+    fgGlitchDynamicCheck.changed(glitchFgDynamicCheckEvent);
     fgGlitchTriggerBtn = createButton('TRIGGER');
     fgGlitchTriggerBtn.mousePressed(startFgGlitch);
 
@@ -629,6 +630,7 @@ function create_gui() {
     fgGlitchSelect.parent('html_fgGlitchSelect');
     fgGlitchDurInput.parent('html_fgGlitchDurInput');
     fgGlitchPreCheck.parent('html_fgGlitchPreCheck');
+    fgGlitchDynamicCheck.parent('html_fgGlitchDynamicCheck');
     fgGlitchTriggerBtn.parent('html_fgGlitchTriggerBtn');
 
 

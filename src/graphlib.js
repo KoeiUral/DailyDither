@@ -721,3 +721,15 @@ function imageNoise(srcImg, quantity = 0.5) {
     imgOut.updatePixels();
     return imgOut;
   }
+
+  function addNoise(quantity = 0.5) {
+    let imgOut = get(); //drawingContext.get();
+    imgOut.loadPixels();
+    for (let i = 0; i < imgOut.pixels.length; i += 4) {
+      imgOut.pixels[i] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 1] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 2] += round(quantity * 255 * (random() - 0.5));
+    }
+    imgOut.updatePixels();
+    return imgOut;
+  }
