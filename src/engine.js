@@ -99,6 +99,7 @@ let isPreGlitchOn = true;
 let glitchHoles = [];
 let glitchWarpOffset = 0;
 let glitchBurnThresh = [];
+let bgDynamicGlitch = false;
 
 
 function onModelLoaded() {
@@ -293,7 +294,9 @@ function glitchBg(image) {
             } else if (glitchEffects[i] == 2) {
                 GlitchScramble(image, glitchHoles, 1);
             } else if (glitchEffects[i] == 3) {
-                GlitchWarp(image, glitchWarpOffset);
+                //let factor = round(glitchWarpOffset * Math.sin(0.08 * frameCount % (2 * Math.PI)));
+                let factor = (bgDynamicGlitch) ? round(glitchWarpOffset * noise(0.4 * frameCount)) : glitchWarpOffset;
+                GlitchWarp(image, factor);
             } else if (glitchEffects[i]  == 4) {
                 GlitchPixelBurn(image, glitchBurnThresh);
             } else if (glitchEffects[i]  == 5) {
@@ -525,9 +528,9 @@ function render() {
             glitchBg(finalBg);
         }
 
-        if (isMixerOn === false) {
+        //if (isMixerOn === false) {
             image(finalBg, 0, 0, DEFAULT_W, DEFAULT_H);
-        }
+        //}
     }
 
     if (modelReady) {
@@ -539,7 +542,7 @@ function render() {
 
         // Downscale the image
         image2D.resize(DEFAULT_W / scaleF, DEFAULT_H / scaleF);
-        addAlpha(image2D);
+        addAlpha(image2D, isMixerOn, scaleF);
 
         if(isBWOn) {
             image2D.filter(GRAY); 
@@ -565,17 +568,17 @@ function render() {
             glitchFg(finalFg);
         }
 
-        if (isMixerOn === false) {
+        //if (isMixerOn === false) {
             image(finalFg, 0, 0, DEFAULT_W, DEFAULT_H);
-        }
+        //}
     }
-
+/*
     if ((modelReady) && (bgReady) && (isMixerOn)) {
         let mixImage;
         mixImage = mixChannelsNoise(finalFg, finalBg, mixImage);
         image(mixImage, 0, 0, DEFAULT_W, DEFAULT_H);
     }
-
+*/
     /* Save the WEBM  */
     if (webmPeriod > 0) {
         //let smallImg = get();

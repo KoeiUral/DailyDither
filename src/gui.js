@@ -19,8 +19,8 @@ let fgSelectDither, fgColorDither, fgDimensionDither;
 let bgCheckDither, bgCheckBW;  // TODO: remove unused variable bgCheckDither
 let bgSelectDither, bgColorDither, bgDimensionDither; 
 let fgGlitchTriggerBtn; // fgGlitchSelect, fgGlitchDurInput are already defined in engine.js boooo!
-let glitchPreCheck, glitchLoopCheck, glitchTriggerBtn, glitchRandomBtn;
-let checkMixer;
+let glitchPreCheck, glitchLoopCheck, bgGlitchDynamicCheck, glitchTriggerBtn, glitchRandomBtn;
+let checkMixer, sliderMixer, checkFinalNoise;
 let gifDurationInput;
 let gifBtn, webmBtn;
 
@@ -344,6 +344,18 @@ function bgAsciiColorCheckEvent() {
 
 function mixCheckEvent() {
     isMixerOn = this.checked();
+    if(isMixerOn) {
+        initNoiseVelocity();
+    }
+}
+
+function updateMixerDensity() {
+    mixerDensityInc = this.value();
+    mixerVelocity = mixerDensityInc * 5;
+}
+
+function updateFinalNoise() {
+    isNoiseOn = this.checked(); 
 }
 
 function preGlitchFgCheckEvent() {
@@ -356,6 +368,10 @@ function preGlitchCheckEvent() {
 
 function glitchAutoLoopCheckEvent() {
     glitchAutoLoop = this.checked();
+}
+
+function glitchDynamicCheckEvent() {
+    bgDynamicGlitch = this.checked();
 }
 
 function activateAutoSequence() {
@@ -683,6 +699,8 @@ function create_gui() {
     glitchPreCheck.changed(preGlitchCheckEvent);
     glitchLoopCheck = createCheckbox('AutoLoop', false);
     glitchLoopCheck.changed(glitchAutoLoopCheckEvent);
+    bgGlitchDynamicCheck = createCheckbox('Dynamic', false);
+    bgGlitchDynamicCheck.changed(glitchDynamicCheckEvent);
     glitchTriggerBtn = createButton('TRIGGER');
     glitchTriggerBtn.mousePressed(startGlitch);
     glitchRandomBtn = createButton('RANDOM');
@@ -704,7 +722,8 @@ function create_gui() {
     glitchSelect.parent('html_bgGlitchSelect');
     glitchDurInput.parent('html_bgGlitchDurInput');
     glitchPreCheck.parent('html_bgGlitchPreCheck');
-    glitchLoopCheck.parent('html_bgGlitchLoopCheck');  
+    glitchLoopCheck.parent('html_bgGlitchLoopCheck');
+    bgGlitchDynamicCheck.parent('html_bgGlitchDynamicCheck');  
     glitchTriggerBtn.parent('html_bgGlitchTriggerBtn');
     glitchRandomBtn.parent('html_bgGlitchRandomBtn');
 
@@ -714,6 +733,10 @@ function create_gui() {
 
     checkMixer = createCheckbox('Enable CH mixer', false);
     checkMixer.changed(mixCheckEvent);
+    sliderMixer = createSlider(0.01, 0.1, 0, 0.005);
+    sliderMixer.changed(updateMixerDensity);
+    checkFinalNoise = createCheckbox('Noise', false);
+    checkFinalNoise.changed(updateFinalNoise);
 
     gifDurationInput =  createInput('0');
     gifDurationInput.size(WIDGET_SIZE);
@@ -728,6 +751,9 @@ function create_gui() {
     /* Hook widget to html */
     genBtn.parent('html_generateBtn');
     checkMixer.parent('html_checkMixer');
+    sliderMixer.parent('html_sliderMixer');
+    checkFinalNoise.parent('html_checkFinalNoise');
+
     gifDurationInput.parent('html_gifDurInput');
     gifBtn.parent('html_gifBtn');
     webmBtn.parent('html_webmBtn');

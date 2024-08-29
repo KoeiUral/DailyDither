@@ -1,14 +1,23 @@
 
 const FONT_SIZE = 26;
-const INCREMENT = 0.1;
 const COLOR_MAX = 255;
+const INCREMENT = 0.01;
+const INCREMENT_S = INCREMENT * 5;
 
 let COLOR_DEPTH = 4;
 let fontImage;
 let fontMap = [];
 
 let noiseGen;
-let zOff;
+let zOff = 0;
+let dsx = 0;
+let dsy = 0;
+let noiseVel;
+
+let mixerDensityInc = INCREMENT;
+let mixerVelocity = INCREMENT_S;
+
+
 let M = [];
 
 
@@ -219,23 +228,44 @@ function initFonts(fontImg) {
 
 }
 
-function addAlpha(srcImg) {
+function addAlpha(srcImg, mixerOn, scale) {
     let x, y;
-
+    let xOff, yOff;
+    let grayLevel = 0;
+    let inc = mixerDensityInc * scale;
+    let sInc = mixerVelocity;;
     srcImg.loadPixels();
 
-    // Iterate over each pixel 
+    // Iterate over each pixel
+    yOff = 0; 
     for (y = 0; y < srcImg.height; y++) {
+        xOff = 0;
         for (x = 0; x < srcImg.width; x++) { 
             i = (x + y * srcImg.width) * COLOR_DEPTH;
 
-            if ((srcImg.pixels[i] === 0)&&(srcImg.pixels[i+1] === 0)&&(srcImg.pixels[i+2] === 0)) {
-                srcImg.pixels[i+3] = 0;
+            if (mixerOn) {
+                grayLevel = noiseGen.noise3D(xOff+ dsx, yOff + dsy, zOff);    
+            }
+
+            if (((srcImg.pixels[i] === 0)&&(srcImg.pixels[i+1] === 0)&&(srcImg.pixels[i+2] === 0)) ||
+                (grayLevel < 0)) {
+                srcImg.pixels[i+3] = 0; // Remove alpha
             } else {
                 srcImg.pixels[i+3] = 255;
             }
+
+            xOff += (mixerOn) ? inc : 0;
         }
+
+        yOff += (mixerOn) ? inc : 0;
     }
+
+    if (mixerOn) {
+        dsx +=  sInc * noiseVel.normalize().x;
+        dsy +=  sInc * noiseVel.normalize().y;
+        zOff += inc;
+    }
+
     srcImg.updatePixels();
 }
 
@@ -329,12 +359,15 @@ function asciifyIt(srcImg, scale, font, colorFlag) {
     return grphCtx.get();
 }
 
-
+function initNoiseVelocity() {
+    noiseVel = createVector(random(-1,1), random(-1,1));
+}
 
 
 function initNoise() {
     noiseGen = new OpenSimplexNoise(Date.now());
     zOff = 0;
+    initNoiseVelocity();
 }
 
 function computeSimplexNoise(srcImg, asciiFlag, grayFlag) {
@@ -382,14 +415,13 @@ function computeSimplexNoise(srcImg, asciiFlag, grayFlag) {
     }
 }
 
+
+
 function mixChannelsNoise(imgA, imgB, imgResult) {
     let xOff = 0;
     let yOff = 0;
     let x, y, i;
     let grayLevel;
-
-    let w = width / imgA.width;
-    let h = height / imgA.height;
 
     imgResult = createImage(imgA.width, imgA.height);
 
@@ -402,9 +434,10 @@ function mixChannelsNoise(imgA, imgB, imgResult) {
         for (x = 0; x < imgA.width; x++) {
             i = (x + y * imgA.width) * COLOR_DEPTH;
 
-            grayLevel = floor(map(noiseGen.noise3D(xOff, yOff, zOff), -1, 1, 0, 255));
+            //grayLevel = floor(map(noiseGen.noise3D(xOff, yOff, zOff), -1, 1, 0, 255));
+            grayLevel = noiseGen.noise3D(xOff+ dsx, yOff + dsy, zOff);
 
-            if (grayLevel >= 127) {
+            if (grayLevel > 0) {
                 imgResult.pixels[i] = imgB.pixels[i];
                 imgResult.pixels[i + 1] = imgB.pixels[i + 1];
                 imgResult.pixels[i + 2] = imgB.pixels[i + 2];
@@ -416,19 +449,21 @@ function mixChannelsNoise(imgA, imgB, imgResult) {
                 imgResult.pixels[i + 2] = imgA.pixels[i + 2];
                 imgResult.pixels[i + 3] = 255
             }
-            else if (random() < 0.8){
+            else if (random() < 0.8) {
                 imgResult.pixels[i] = imgB.pixels[i];
                 imgResult.pixels[i + 1] = imgB.pixels[i + 1];
                 imgResult.pixels[i + 2] = imgB.pixels[i + 2];
                 imgResult.pixels[i + 3] = 255
             }
 
-            xOff += 0.01;//INCREMENT;
+            xOff += mixerDensityInc;
         }
-        yOff += 0.01;//INCREMENT;
+        yOff += mixerDensityInc;
     }
 
-    zOff += 0.1;//INCREMENT;
+    dsx +=  mixerVelocity * noiseVel.normalize().x;
+    dsy +=  mixerVelocity * noiseVel.normalize().y;
+    zOff += mixerDensityInc;
 
     imgResult.updatePixels(); 
     return imgResult;
@@ -604,17 +639,33 @@ function GlitchWarp(srcImg, maxOffset) {
 	//var maxOffset = floor(random(1,width/2));
 	srcImg.loadPixels();
 
-	//for (let x = maxOffset; x < (srcImg.width - maxOffset); x++) {
-    for (let x = 0; x < srcImg.width; x++) {
-		for (let y = 0; y < srcImg.height; y++) {
-			let i = (x + y * srcImg.width) * COLOR_DEPTH;
-			let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
+    if (maxOffset > 0) {
+        for (let x = 0; x < srcImg.width; x++) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let i = (x + y * srcImg.width) * COLOR_DEPTH;
+                let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
 
-			srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
-			srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
-			srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
-		}
-	}
+                srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
+                srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
+                srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
+            }
+        }
+    } else {
+        for (let x = srcImg.width - 1; x >= 0; x--) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let i = (x + y * srcImg.width) * COLOR_DEPTH;
+                let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
+
+                srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
+                srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
+                srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
+            }
+        }
+    }
+
+
+
+
 	srcImg.updatePixels();
 }
 
@@ -650,3 +701,23 @@ function GlitchPixelNegative(srcImg) {
 	}
 	srcImg.updatePixels();
 }
+
+
+
+/**
+ * Adds random noise to an image
+ * @param {p5.Image} img - Input image
+ * @param {number} [quantity = 0.5] - Quantity of noise to add
+ * @returns {p5.Image} Returns the image with added noise
+ */
+function imageNoise(srcImg, quantity = 0.5) {
+    let imgOut = srcImg.get();
+    imgOut.loadPixels();
+    for (let i = 0; i < imgOut.pixels.length; i += 4) {
+      imgOut.pixels[i] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 1] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 2] += round(quantity * 255 * (random() - 0.5));
+    }
+    imgOut.updatePixels();
+    return imgOut;
+  }
