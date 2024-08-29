@@ -74,6 +74,7 @@ let fgGlitchHoles = [];
 let fgGlitchWarpOffset = 0;
 let fgGlitchBurnThresh = [];
 let fgDynamicGlitch = false;
+let fgGlitchRx, fgGlitchRy, fgGlitchGx, fgGlitchGy, fgGlitchBx, fgGlitchBy;
 
 const GlitchSeqState = {
     IDLE: 'IDLE',
@@ -81,6 +82,17 @@ const GlitchSeqState = {
     WAIT: 'WAIT'
   };
 
+ const GlitchType = {
+    SCAN: 1,
+    SCRAMBLE: 2,
+    WARP: 3,
+    BURN: 4,
+    NEG: 5,
+    RGBSHIT: 6,
+    GLITCH_NBR: 7
+  };
+
+const MAX_GLITCH = 6;
 const STEP_WAIT_TIME = 10;
 const MAX_SEQ_STEP = 10;
 const MIN_STEP_TIME = 7;
@@ -102,6 +114,7 @@ let glitchHoles = [];
 let glitchWarpOffset = 0;
 let glitchBurnThresh = [];
 let bgDynamicGlitch = false;
+let bgGlitchRx, bgGlitchRy, bgGlitchGx, bgGlitchGy, bgGlitchBx, bgGlitchBy;
 
 
 function onModelLoaded() {
@@ -171,6 +184,13 @@ function startFgGlitch() {
             fgGlitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scale));
         } else if (fgGlitchEffects[i] == 4) {
             fgGlitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
+        } else if (fgGlitchEffects[i] == 6) {
+            fgGlitchRx = floor(random(-50, 50));
+            fgGlitchRy = floor(random(-50, 50));
+            fgGlitchGx = floor(random(-50, 50));
+            fgGlitchGy = floor(random(-50, 50));
+            fgGlitchBx = floor(random(-50, 50));
+            fgGlitchBy = floor(random(-50, 50));
         }
     }
 
@@ -303,6 +323,16 @@ function glitchBg(image) {
                 GlitchPixelBurn(image, glitchBurnThresh);
             } else if (glitchEffects[i]  == 5) {
                 GlitchPixelNegative(image);
+            } else if (glitchEffects[i]  == 6) {
+                let rx, ry, gx, gy, bx, by;
+                let facotr = (bgDynamicGlitch) ? noise(0.4 * frameCount) : 1;
+                rx = round(facotr * bgGlitchRx);
+                ry = round(facotr * bgGlitchRy);
+                gx = round(facotr * bgGlitchGx);
+                gy = round(facotr * bgGlitchGy);
+                bx = round(facotr * bgGlitchBx);
+                by = round(facotr * bgGlitchBy);
+                imageRGBTranslate(image, rx, ry, gx, gy, bx, by);
             }
         }
         glitchFrames--;
@@ -325,6 +355,16 @@ function glitchFg(image) {
                 GlitchPixelBurn(image, fgGlitchBurnThresh);
             } else if (fgGlitchEffects[i]  == 5) {
                 GlitchPixelNegative(image);
+            } else if (fgGlitchEffects[i]  == 6) {
+                let rx, ry, gx, gy, bx, by;
+                let facotr = (fgDynamicGlitch) ? noise(0.4 * frameCount) : 1;
+                rx = round(facotr * fgGlitchRx);
+                ry = round(facotr * fgGlitchRy);
+                gx = round(facotr * fgGlitchGx);
+                gy = round(facotr * fgGlitchGy);
+                bx = round(facotr * fgGlitchBx);
+                by = round(facotr * fgGlitchBy);
+                imageRGBTranslate(image, rx, ry, gx, gy, bx, by);
             }
         }
 
@@ -363,6 +403,13 @@ function configureGlitchParams(glitchList) {
             glitchWarpOffset = floor(random(1, DEFAULT_W / 2 / scale));
         } else if (glitchList[i] == 4) {
             glitchBurnThresh = [random(COLOR_MAX), random(COLOR_MAX), random(COLOR_MAX)];
+        } else if (glitchList[i] == 6) {
+            bgGlitchRx = floor(random(-50, 50));
+            bgGlitchRy = floor(random(-50, 50));
+            bgGlitchGx = floor(random(-50, 50));
+            bgGlitchGy = floor(random(-50, 50));
+            bgGlitchBx = floor(random(-50, 50));
+            bgGlitchBy = floor(random(-50, 50));
         }
     }
 
@@ -372,7 +419,6 @@ function configureGlitchParams(glitchList) {
 
 function createGlitchSequence(isLoopOn) {
     let stepNbr = parseInt(random(2, MAX_SEQ_STEP));
-    const MAX_GLITCH = 5;
 
     glitchAutoLoop = isLoopOn;
     

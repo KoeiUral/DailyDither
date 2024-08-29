@@ -586,6 +586,7 @@ function create_gui() {
     fgGlitchSelect.option('WARP', 3);
     fgGlitchSelect.option('BURN', 4);
     fgGlitchSelect.option('NEG', 5);
+    fgGlitchSelect.option('RGB', 6);
     fgGlitchDurInput = createInput('0');
     fgGlitchDurInput.size(WIDGET_SIZE);
     fgGlitchPreCheck = createCheckbox('PreGlitch', true);
@@ -695,6 +696,7 @@ function create_gui() {
     glitchSelect.option('WARP', 3);
     glitchSelect.option('BURN', 4);
     glitchSelect.option('NEG', 5);
+    glitchSelect.option('RGB', 6);
     glitchDurInput = createInput('0');
     glitchDurInput.size(WIDGET_SIZE);
     glitchPreCheck = createCheckbox('PreGlitch', true);

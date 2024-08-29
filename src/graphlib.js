@@ -733,3 +733,52 @@ function imageNoise(srcImg, quantity = 0.5) {
     imgOut.updatePixels();
     return imgOut;
   }
+
+
+  /**
+ * Translate RGB channels individually
+ * @param {p5.Image} img - Input image
+ * @param {number} [rx = 0] - Horizontal translation of the red channel
+ * @param {number} [ry = 0] - Vertical translation of the red channel
+ * @param {number} [gx = 0] - Horizontal translation of the green channel
+ * @param {number} [gy = 0] - Vertical translation of the green channel
+ * @param {number} [bx = 0] - Horizontal translation of the blue channel
+ * @param {number} [by = 0] - Vertical translation of the blue channel
+ * @returns {p5.Image} Returns the image translated RGB channels
+ */
+function imageRGBTranslate(srcImg, rx = 0, ry = 0, gx = 0, gy = 0, bx = 0, by = 0) {
+    let w = srcImg.width;
+    let h = srcImg.height;
+    let imgOut = createImage(w, h);
+    let rxOut, ryOut, gxOut, gyOut, bxOut, byOut;
+    let ir, ig, ib, i;
+
+    srcImg.loadPixels();
+    imgOut.loadPixels();
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        rxOut = (x + rx) % w; //constrain(x + rx, 0, w - 1);
+        ryOut = (y + ry) % h; //constrain(y + ry, 0, h - 1);
+        gxOut = (x + gx) % w; //constrain(x + gx, 0, w - 1);
+        gyOut = (y + gy) % h; //constrain(y + gy, 0, h - 1);
+        bxOut = (x + bx) % w; //constrain(x + bx, 0, w - 1);
+        byOut = (y + by) % h; //constrain(y + by, 0, h - 1);
+
+        ir = 4 * (rxOut + ryOut * w);
+        ig = 4 * (gxOut + gyOut * w) + 1;
+        ib = 4 * (bxOut + byOut * w) + 2;
+        i = 4 * (x + y * w);
+
+        imgOut.pixels[ir] = srcImg.pixels[i];
+        imgOut.pixels[ig] = srcImg.pixels[i + 1];
+        imgOut.pixels[ib] = srcImg.pixels[i + 2];
+        imgOut.pixels[i + 3] = 255;
+      }
+    }
+
+    imgOut.updatePixels();
+
+    srcImg.copy(imgOut, 0, 0, w, h, 0, 0, w, h);
+    //return imgOut;
+  }
