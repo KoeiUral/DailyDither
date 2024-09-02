@@ -312,7 +312,7 @@ function glitchBg(image) {
     if (glitchFrames > 0) {
         for (let i = 0; i < glitchEffects.length; i++) {
             if (glitchEffects[i] == 1) {
-                GlitchScanner(image,  glitchScanDir, glitchScanX, glitchScanY);
+                GlitchScanner(image,  glitchScanDir, glitchScanX, glitchScanY, bgDynamicGlitch);
             } else if (glitchEffects[i] == 2) {
                 GlitchScramble(image, glitchHoles, 1);
             } else if (glitchEffects[i] == 3) {
@@ -345,7 +345,7 @@ function glitchFg(image) {
 
         for (let i = 0; i < fgGlitchEffects.length; i++) {
             if (fgGlitchEffects[i] == 1) {
-                GlitchScanner(image,  fgGlitchScanDir, fgGlitchScanX * scale, fgGlitchScanY * scale);
+                GlitchScanner(image,  fgGlitchScanDir, fgGlitchScanX * scale, fgGlitchScanY * scale, fgDynamicGlitch);
             } else if (fgGlitchEffects[i]  == 2) {
                 GlitchScramble(image, fgGlitchHoles, scale);
             } else if (fgGlitchEffects[i]  == 3) {
@@ -617,7 +617,7 @@ function render() {
     }
 
     if (isNoiseOn) {
-        image(addNoise(0.8), 0, 0);
+        image(addNoise(0.5), 0, 0);
     }
 
     /* Save the WEBM  */

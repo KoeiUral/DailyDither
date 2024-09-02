@@ -613,16 +613,34 @@ function ShiftHueCopy(srcImg, dstImg, offset) {
  *  ---------------------------------------------------------------------
  */
 
-function GlitchScanner(srcImg, direction, startX, startY) {
+function GlitchScanner(srcImg, direction, startX, startY, isdynamic)  {
+    let maxOffset = srcImg.width / 3;
+
 	if (direction <= 0.5) {
 		//horizontal: random - x
-		srcImg.copy(srcImg, startX, 0, 1, srcImg.height, 
-                    startX, 0, srcImg.width - startX, srcImg.height);
+        if (isdynamic) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let offset = floor(maxOffset * noise(y / (srcImg.height * 0.08)));
+                srcImg.copy(srcImg, startX + offset, y, 1, 1, 
+                                    startX + offset, y, srcImg.width - startX - offset, 1);
+            }
+        } else {
+		    srcImg.copy(srcImg, startX, 0, 1, srcImg.height, 
+                                startX, 0, srcImg.width - startX, srcImg.height);
+        }
 	}
 	else {
-		//vertical: random  -y
-		srcImg.copy(srcImg, 0, startY, srcImg.width, 1,
-                    0, startY, srcImg.width, srcImg.height - startY);
+        //vertical: random  -y
+        if (isdynamic) {
+            for (let x = 0; x < srcImg.width; x++) {
+                let offset = floor(maxOffset * noise(x / (srcImg.width * 0.08)));
+                srcImg.copy(srcImg, x, startY + offset, 1, 1,
+                                    x, startY + offset, 1, srcImg.height - startY - offset);
+            }
+        } else {
+            srcImg.copy(srcImg, 0, startY, srcImg.width, 1,
+                                0, startY, srcImg.width, srcImg.height - startY);
+        }
 	}
 }
 
@@ -662,9 +680,6 @@ function GlitchWarp(srcImg, maxOffset) {
             }
         }
     }
-
-
-
 
 	srcImg.updatePixels();
 }
