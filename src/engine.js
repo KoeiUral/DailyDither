@@ -587,7 +587,7 @@ function render() {
 
         // Downscale the image
         image2D.resize(DEFAULT_W / scaleF, DEFAULT_H / scaleF);
-        addAlpha(image2D, isMixerOn, scaleF);
+        addAlphaAmp(image2D, isMixerOn, scaleF);
 
         if(isBWOn) {
             image2D.filter(GRAY); 

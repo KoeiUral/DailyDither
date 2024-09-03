@@ -269,6 +269,55 @@ function addAlpha(srcImg, mixerOn, scale) {
     srcImg.updatePixels();
 }
 
+const FREQ = [1, 2, 4, 8, 16, 32];
+const AMP = [1, 1/2, 1/3, 1/4, 1/5, 1/6];
+const AMP_SUM = AMP[0] + AMP[1] + AMP[2] + AMP[3] + AMP[4] + AMP[5];
+const TIME_INC = 0;
+const SIN_K = 2;
+const EXP = 2;
+const DIST = 0.4;
+
+function addAlphaAmp(srcImg, mixerOn, scale) {
+    let x, y, i;
+    let inc = mixerDensityInc;
+    let nx, ny;
+    let e = 0.5;
+    let d = 0;
+
+    srcImg.loadPixels();
+
+    for (y = 0; y < srcImg.height; y++) {
+        for (x = 0; x < srcImg.width; x++) {
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+            if (mixerOn) {
+                nx = x / srcImg.width - 0.5;
+                ny = y / srcImg.height - 0.5;
+                d = 1 - (1 - nx * nx) * (1 - ny * ny);
+                e = 0;
+
+                for (let j = 0; j < AMP.length; j++) {
+                    e += AMP[j] * (noiseGen.noise3D(nx * FREQ[j], ny * FREQ[j], sin(SIN_K * zOff)) / 2 + 0.5);
+                }
+                e = e / AMP_SUM;
+                e = Math.pow(e, EXP);
+                e = (1 - DIST) * e + DIST * (1 - d);  //equal to -> e = lerp (e, 1 - d, DIST);
+            }
+
+            if ((e < 0.5) || ((srcImg.pixels[i] === 0) && (srcImg.pixels[i+1] === 0) && (srcImg.pixels[i+2] === 0))) {
+                srcImg.pixels[i + 3] = 0
+            }
+            else {
+                srcImg.pixels[i + 3] = 255
+            }
+        }
+    }
+
+    zOff += (mixerOn) ? inc : 0;
+
+    srcImg.updatePixels(); 
+}
+
 
 function asciify(srcImg, dstImage) {
     let x, y;
@@ -468,7 +517,6 @@ function mixChannelsNoise(imgA, imgB, imgResult) {
     imgResult.updatePixels(); 
     return imgResult;
 }
-
 
 
 /**
