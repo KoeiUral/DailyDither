@@ -349,9 +349,14 @@ function asciify(srcImg, dstImage) {
 
 
 const grayRamp = ' _.,-=+:;cba!?0123456789$W#@Ñ';
+//const grayRamp = " _.'`^\",-:;Il!i><~+?]{1)|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+//const grayRamp = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+const grayRampColor = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
 const rampLength = grayRamp.length;
+const rampLengthColor = grayRampColor.length;
 const toGrayScale = (r, g, b) => 0.21 * r + 0.72 * g + 0.07 * b;
 const getCharacterForGrayScale = grayScale => grayRamp[Math.ceil(((rampLength - 1) * grayScale) / 255)];
+const getCharacterForColor = grayScale => grayRampColor[Math.ceil(((rampLengthColor - 1) * grayScale) / 255)];
 
 function textify(grayLevel, x, y, w, h, grayFlag) {
     let pixelChar;
@@ -386,8 +391,8 @@ function asciifyIt(srcImg, scale, font, colorFlag) {
             grayLevel = toGrayScale(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
 
             if (srcImg.pixels[i+3]===255) {
-                //textify (grayLevel, x, y, scale, scale, FALSE);
-                pixelChar = getCharacterForGrayScale(grayLevel);
+                pixelChar = (colorFlag) ? getCharacterForColor (grayLevel) : 
+                                          getCharacterForGrayScale(grayLevel);
             
                 grphCtx.fill(0);
                 grphCtx.rect(x * scale, y * scale, scale, scale);
