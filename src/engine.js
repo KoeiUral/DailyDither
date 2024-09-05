@@ -247,7 +247,7 @@ function checkTargetChange() {
 
 function compute3D() {
     _3dGraph.reset();
-    _3dGraph.background(0);
+    _3dGraph.background(0);//, 0);
     _3dGraph.ambientLight(255, 255, 255, 255); 
     _3dGraph.directionalLight(255, 255, 255, 0, 0, -1);
 
@@ -587,7 +587,7 @@ function render() {
 
         // Downscale the image
         image2D.resize(DEFAULT_W / scaleF, DEFAULT_H / scaleF);
-        addAlphaAmp(image2D, isMixerOn, scaleF);
+        addAlphaAmp(image2D, isMixerOn, scaleF); 
 
         if(isBWOn) {
             image2D.filter(GRAY); 

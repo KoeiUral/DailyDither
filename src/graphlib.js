@@ -841,12 +841,22 @@ function imageRGBTranslate(srcImg, rx = 0, ry = 0, gx = 0, gy = 0, bx = 0, by = 
         imgOut.pixels[ir] = srcImg.pixels[i];
         imgOut.pixels[ig] = srcImg.pixels[i + 1];
         imgOut.pixels[ib] = srcImg.pixels[i + 2];
-        imgOut.pixels[i + 3] = 255;
+        //imgOut.pixels[i + 3] = 255;
       }
+    }
+
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            i = 4 * (x + y * w);
+            if ((imgOut.pixels[i] === 0) && (imgOut.pixels[i+1] === 0) && (imgOut.pixels[i+2] === 0)) {
+                imgOut.pixels[i + 3] = 0;
+            } else {
+                imgOut.pixels[i + 3] = 255; 
+            }
+        }
     }
 
     imgOut.updatePixels();
 
     srcImg.copy(imgOut, 0, 0, w, h, 0, 0, w, h);
-    //return imgOut;
   }
