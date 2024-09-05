@@ -37,7 +37,7 @@ function onTextureLoaded() {
 }
 
 function modelLoaded(pizza) {
-    mySource3D.onModelLoaded();
+    //mySource3D.onModelLoaded();
     console.log("GID="+pizza.gid+"$");
     console.log(pizza);
 }
@@ -57,8 +57,9 @@ function handle3DFile(file) {
 }
 
 function handleTexture(file) {
-    textureReady = false;
-    myTexture = loadImage(MODEL_PATH + file.name, onTextureLoaded);
+    //textureReady = false;
+    //myTexture = loadImage(MODEL_PATH + file.name, onTextureLoaded);
+    mySource3D.loadTexture(file);
 }
 
 function handleBGFile(file) {
