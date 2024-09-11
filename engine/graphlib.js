@@ -1,0 +1,862 @@
+
+const FONT_SIZE = 26;
+const COLOR_MAX = 255;
+const INCREMENT = 0.01;
+const INCREMENT_S = INCREMENT * 5;
+
+let COLOR_DEPTH = 4;
+let fontImage;
+let fontMap = [];
+
+let noiseGen;
+let zOff = 0;
+let dsx = 0;
+let dsy = 0;
+let noiseVel;
+
+let mixerDensityInc = INCREMENT;
+let mixerVelocity = INCREMENT_S;
+
+
+let M = [];
+
+
+function updateColorDepth(depth) {
+    if (depth >= 1) {
+        COLOR_DEPTH = depth;
+    }
+}
+
+/**
+ * This function up scale a source image without alliasing not blurring, pixel are replicated scaleFactor times
+ * 
+ * @param {*} srcImg Source image
+ * @param {*} dstImg Result image
+ * @param {*} scaleFactor Scale factor
+ * @returns 
+ */
+function upScale(srcImg, dstImg, scaleFactor, depthOffset) {
+    let sx, sy, dx, dy;
+    let si, di;
+    let colorDepth = depthOffset;
+
+    dstImg = createImage(srcImg.width * scaleFactor, srcImg.height * scaleFactor);
+
+    srcImg.loadPixels();
+    dstImg.loadPixels();
+
+    // Iterate over the source image
+    for (sy = 0; sy < srcImg.height; sy++) {
+        for (sx = 0; sx < srcImg.width; sx++) {
+            si = (sx + sy * srcImg.width) * colorDepth;//COLOR_DEPTH;
+
+            // Copy into the upscaled dest pixel
+            for (dy = 0; dy < scaleFactor; dy++) {
+                for (dx = 0; dx < scaleFactor; dx++) {
+                    di = ((sx * scaleFactor + dx) + (sy * scaleFactor + dy) * dstImg.width) * colorDepth;//COLOR_DEPTH
+
+                    dstImg.pixels[di] = srcImg.pixels[si];
+                    dstImg.pixels[di + 1] = srcImg.pixels[si + 1];
+                    dstImg.pixels[di + 2] = srcImg.pixels[si + 2];
+                    dstImg.pixels[di + 3] = srcImg.pixels[si + 3];
+                }
+            }
+        }
+    }
+
+    dstImg.updatePixels(); 
+    return dstImg;
+}
+
+
+
+
+/**
+ * The function applies a dither filter on the image
+ * 
+ * @param {*} srcImg Source Image to be dithered
+ */
+function ditherIt(srcImg, greyScale, depthOffset) {
+    const xOffset = [1, -1, 0, 1];
+    const yOffset = [0, 1, 1, 1];
+    const weigth = [7, 3, 5, 1];
+    const COLOR_CH_NBR = 1; //COLOR_CH_NBR^3 colors, with 2 => 8 colors
+
+    let r, g, b, newR, newG, newB, errR, errG, errB, grey;
+    let i, iNext;
+    let colorScale = round (255 / (pow(2, COLOR_CH_NBR) - 1));
+    let colorDepth = depthOffset;
+    
+    srcImg.loadPixels();
+    
+    // Iterate over each pixel 
+    for (let y = 0; y < srcImg.height - 1; y++) {
+        for (let x = 1; x < srcImg.width - 1; x++) { 
+          i = (x + y * srcImg.width) * colorDepth; //COLOR_DEPTH;
+  
+          r = srcImg.pixels[i + 0];
+          g = srcImg.pixels[i + 1];
+          b = srcImg.pixels[i + 2];
+
+          if(greyScale) {
+            grey = round((r + g + b) / 3);
+            r = grey;
+            g = grey;
+            b = grey;
+          }
+
+          newR =  (r >> (8 - COLOR_CH_NBR)) * colorScale;
+          newG =  (g >> (8 - COLOR_CH_NBR)) * colorScale;
+          newB =  (b >> (8 - COLOR_CH_NBR)) * colorScale;
+
+          errR = r - newR;
+          errG = g - newG;
+          errB = b - newB;
+          
+          srcImg.pixels[i + 0] = newR;
+          srcImg.pixels[i + 1] = newG;
+          srcImg.pixels[i + 2] = newB;
+
+          for (let j = 0; j < 4; j++) {
+            iNext = ((x + xOffset[j]) + (y + yOffset[j]) * srcImg.width) * colorDepth;
+            r = srcImg.pixels[iNext + 0];
+            g = srcImg.pixels[iNext + 1];
+            b = srcImg.pixels[iNext + 2];
+            r = r + errR * weigth[j]/16;
+            g = g + errG * weigth[j]/16;
+            b = b + errB * weigth[j]/16;
+            srcImg.pixels[iNext + 0] = r;
+            srcImg.pixels[iNext + 1] = g;
+            srcImg.pixels[iNext + 2] = b;          
+          }
+
+        }
+    }
+    
+    srcImg.updatePixels();
+}
+
+function initBayerMatrix() {
+    //initilize constants
+    const DIM = 8;
+    const DIM_2 = DIM * DIM;
+
+    //define threshold map
+    M = [[0,32,8,40,2,34,10,42],
+         [48,16,56,24,50,18,58,26],
+         [12,44,4,36,14,46,6,38],
+         [60,28,52,20,62,30,54,22],
+         [3,35,11,43,1,33,9,41],
+         [51,19,59,27,49,17,57,25],
+         [15,47,7,39,13,45,5,37],
+         [63,31,55,23,61,29,53,21]];
+
+    for(let i = 0; i < DIM; i++) {
+        for(let j = 0; j < DIM; j++) {
+            M[i][j] = M[i][j] / (DIM_2); 
+        }
+    }
+}
+
+function BayerDithering(srcImg, colors, dim) {
+    const f = (colors - 1) / 255;
+    const c_ = (colors - 1);
+    let i, T;
+
+    srcImg.loadPixels();
+
+    for (let y = 0; y < srcImg.height - 1; y++) {
+        for (let x = 1; x < srcImg.width - 1; x++) { 
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+            T = M[x % dim][y % dim];
+
+            srcImg.pixels[i    ] = 255 * Math.floor(T + srcImg.pixels[i    ] * f) / c_;
+            srcImg.pixels[i + 1] = 255 * Math.floor(T + srcImg.pixels[i + 1] * f) / c_;
+            srcImg.pixels[i + 2] = 255 * Math.floor(T + srcImg.pixels[i + 2] * f) / c_;
+            //srcImg.pixels[i+3] = 255;
+        }  
+    }
+
+    srcImg.updatePixels();
+}
+
+/**
+ * The function initializes a ascii set starting from a font image
+ * 
+ * @param {*} fontImg image containg all the fonts to be used
+ */
+function initFonts(fontImg) {
+    const rowNbr = floor((fontImg.height) / FONT_SIZE);
+    const colNbr = floor((fontImg.width) / FONT_SIZE);
+    let i, j;
+    let x, y;
+    let startX, startY;
+    let endX, endY;
+    let pId;
+    let brightCntr;
+
+    fontImg.loadPixels();
+
+    for (i = 0; i < rowNbr; i++) {
+        for (j = 0; j < colNbr; j++) {
+            startX = j * FONT_SIZE + 2;
+            startY = i * FONT_SIZE + 2;
+            endX = startX + FONT_SIZE;
+            endY = startY + FONT_SIZE;
+            brightCntr = 0;            
+
+            for (y = startY; y < endY; y++) {
+                for (x = startX; x < endX; x++) {
+                    pId = (x + y * fontImg.width) * COLOR_DEPTH;
+
+                    if ((fontImg.pixels[pId] === 255) && (fontImg.pixels[pId+1] === 255) && (fontImg.pixels[pId+2] === 255)) {
+                        brightCntr++;
+                    }
+                }
+            }
+
+            fontMap.push({r: i, c: j, x: startX, y: startY, br: brightCntr});
+        }
+    }
+
+
+    fontMap.sort((a, b) => {
+        return a.br - b.br;
+    });
+
+
+
+}
+
+function addAlpha(srcImg, mixerOn, scale) {
+    let x, y;
+    let xOff, yOff;
+    let grayLevel = 0;
+    let inc = mixerDensityInc * scale;
+    let sInc = mixerVelocity;;
+    srcImg.loadPixels();
+
+    // Iterate over each pixel
+    yOff = 0; 
+    for (y = 0; y < srcImg.height; y++) {
+        xOff = 0;
+        for (x = 0; x < srcImg.width; x++) { 
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+            if (mixerOn) {
+                grayLevel = noiseGen.noise3D(xOff+ dsx, yOff + dsy, zOff);    
+            }
+
+            if (((srcImg.pixels[i] === 0)&&(srcImg.pixels[i+1] === 0)&&(srcImg.pixels[i+2] === 0)) ||
+                (grayLevel < 0)) {
+                srcImg.pixels[i+3] = 0; // Remove alpha
+            } else {
+                srcImg.pixels[i+3] = 255;
+            }
+
+            xOff += (mixerOn) ? inc : 0;
+        }
+
+        yOff += (mixerOn) ? inc : 0;
+    }
+
+    if (mixerOn) {
+        dsx +=  sInc * noiseVel.normalize().x;
+        dsy +=  sInc * noiseVel.normalize().y;
+        zOff += inc;
+    }
+
+    srcImg.updatePixels();
+}
+
+const FREQ = [1, 2, 4, 8, 16, 32];
+const AMP = [1, 1/2, 1/3, 1/4, 1/5, 1/6];
+const AMP_SUM = AMP[0] + AMP[1] + AMP[2] + AMP[3] + AMP[4] + AMP[5];
+const TIME_INC = 0;
+const SIN_K = 2;
+const EXP = 2;
+const DIST = 0.4;
+
+function addAlphaAmp(srcImg, mixerOn, scale) {
+    let x, y, i;
+    let inc = mixerDensityInc;
+    let nx, ny;
+    let e = 0.5;
+    let d = 0;
+
+    srcImg.loadPixels();
+
+    for (y = 0; y < srcImg.height; y++) {
+        for (x = 0; x < srcImg.width; x++) {
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+            if (mixerOn) {
+                nx = x / srcImg.width - 0.5;
+                ny = y / srcImg.height - 0.5;
+                d = 1 - (1 - nx * nx) * (1 - ny * ny);
+                e = 0;
+
+                for (let j = 0; j < AMP.length; j++) {
+                    e += AMP[j] * (noiseGen.noise3D(nx * FREQ[j], ny * FREQ[j], sin(SIN_K * zOff)) / 2 + 0.5);
+                }
+                e = e / AMP_SUM;
+                e = Math.pow(e, EXP);
+                e = (1 - DIST) * e + DIST * (1 - d);  //equal to -> e = lerp (e, 1 - d, DIST);
+            }
+
+            if ((e < 0.5) || ((srcImg.pixels[i] === 0) && (srcImg.pixels[i+1] === 0) && (srcImg.pixels[i+2] === 0))) {
+                srcImg.pixels[i + 3] = 0
+            }
+            else {
+                srcImg.pixels[i + 3] = 255
+            }
+        }
+    }
+
+    zOff += (mixerOn) ? inc : 0;
+
+    srcImg.updatePixels(); 
+}
+
+
+function asciify(srcImg, dstImage) {
+    let x, y;
+    let grayLevel;
+    let fontId;
+
+    let fontW = width / srcImg.width;
+    let fontH = height / srcImg.height;
+
+    srcImg.loadPixels();
+    dstImage = new createImage(width, height);
+
+    // Iterate over each pixel 
+    for (y = 0; y < srcImg.height; y++) {
+        for (x = 0; x < srcImg.width; x++) { 
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+            if ((srcImg.pixels[i+3] === 255) && (! ((srcImg.pixels[i] === 0)&&(srcImg.pixels[i+1] === 0)&&(srcImg.pixels[i+2] === 0)))) {
+                grayLevel = round(0.21 * srcImg.pixels[i] + 0.72 * srcImg.pixels[i + 1] + 0.07 * srcImg.pixels[i + 2]);
+                fontId = ceil((fontMap.length - 1) * (grayLevel / 255));
+            
+                dstImage.copy(fontImage, fontMap[fontId].x, fontMap[fontId].y, 24, 24, x * fontW, y * fontH, fontW, fontH);
+            }
+        }
+    }
+
+    return dstImage;
+}
+
+
+const grayRamp = ' _.,-=+:;cba!?0123456789$W#@Ñ';
+//const grayRamp = " _.'`^\",-:;Il!i><~+?]{1)|\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+//const grayRamp = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+const grayRampColor = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
+const rampLength = grayRamp.length;
+const rampLengthColor = grayRampColor.length;
+const toGrayScale = (r, g, b) => 0.21 * r + 0.72 * g + 0.07 * b;
+const getCharacterForGrayScale = grayScale => grayRamp[Math.ceil(((rampLength - 1) * grayScale) / 255)];
+const getCharacterForColor = grayScale => grayRampColor[Math.ceil(((rampLengthColor - 1) * grayScale) / 255)];
+
+function textify(grayLevel, x, y, w, h, grayFlag) {
+    let pixelChar;
+
+    pixelChar = getCharacterForGrayScale(grayLevel);
+    grayLevel = (grayFlag) ? grayLevel : 255;
+
+    fill(0);
+    rect(x * w, y * h, w, h);
+    fill(grayLevel);
+    textSize(w);
+    textAlign(CENTER, CENTER);
+    text(pixelChar, x * w + w * 0.5, y * h + h * 0.5);  
+}
+
+function asciifyIt(srcImg, scale, font, colorFlag) {
+    let x, y;
+    let grayLevel;
+    let pixelChar;
+    let grphCtx = createGraphics(srcImg.width * scale, srcImg.height * scale);
+
+    srcImg.loadPixels();
+    noStroke();
+
+    grphCtx.textFont(font);
+
+    // Iterate over each pixel 
+    for (y = 0; y < srcImg.height; y++) {
+        for (x = 0; x < srcImg.width; x++) { 
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+            grayLevel = toGrayScale(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
+
+            if (srcImg.pixels[i+3]===255) {
+                pixelChar = (colorFlag) ? getCharacterForColor (grayLevel) : 
+                                          getCharacterForGrayScale(grayLevel);
+            
+                grphCtx.fill(0);
+                grphCtx.rect(x * scale, y * scale, scale, scale);
+
+                if (colorFlag) {
+                    grphCtx.fill(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
+                } else {
+                    grphCtx.fill(255);
+                }
+
+                grphCtx.textSize(scale);
+                grphCtx.textAlign(CENTER, CENTER);
+                grphCtx.text(pixelChar, x * scale + scale * 0.5, y * scale + scale * 0.5);  
+            }
+        }
+    }
+
+    return grphCtx.get();
+}
+
+function initNoiseVelocity() {
+    noiseVel = createVector(random(-1,1), random(-1,1));
+}
+
+
+function initNoise() {
+    noiseGen = new OpenSimplexNoise(Date.now());
+    zOff = 0;
+    initNoiseVelocity();
+}
+
+function computeSimplexNoise(srcImg, asciiFlag, grayFlag) {
+    let xOff = 0;
+    let yOff = 0;
+    let x, y, i;
+    let grayLevel;
+
+    let w = width / srcImg.width;
+    let h = height / srcImg.height;
+    let maxLevel = (grayFlag) ? 255 : 360;;
+
+    srcImg.loadPixels();
+
+    for (y = 0; y < srcImg.height; y++) {
+        xOff = 0;
+        for (x = 0; x < srcImg.width; x++) {
+            i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+            grayLevel = floor(map(noiseGen.noise3D(xOff, yOff, zOff), -1, 1, 0, maxLevel));
+
+            if (asciiFlag) {
+                textify(grayLevel, x, y, w, h, grayFlag);
+            }
+            else if (grayFlag) {
+                srcImg.pixels[i] = grayLevel;
+                srcImg.pixels[i + 1] = grayLevel;
+                srcImg.pixels[i + 2] = grayLevel;
+                srcImg.pixels[i + 3] = 255;
+            }
+            else {
+                [srcImg.pixels[i], srcImg.pixels[i+1], srcImg.pixels[i+2]]= hsv2rgb(grayLevel, 1, 1);
+                srcImg.pixels[i + 3] = 255;
+            }
+
+            xOff += INCREMENT;
+        }
+        yOff += INCREMENT;
+    }
+
+    zOff += INCREMENT;
+
+    if (asciiFlag === false) {
+        srcImg.updatePixels();
+    }
+}
+
+
+
+function mixChannelsNoise(imgA, imgB, imgResult) {
+    let xOff = 0;
+    let yOff = 0;
+    let x, y, i;
+    let grayLevel;
+
+    imgResult = createImage(imgA.width, imgA.height);
+
+    imgA.loadPixels();
+    imgB.loadPixels();
+    imgResult.loadPixels();
+
+    for (y = 0; y < imgA.height; y++) {
+        xOff = 0;
+        for (x = 0; x < imgA.width; x++) {
+            i = (x + y * imgA.width) * COLOR_DEPTH;
+
+            //grayLevel = floor(map(noiseGen.noise3D(xOff, yOff, zOff), -1, 1, 0, 255));
+            grayLevel = noiseGen.noise3D(xOff+ dsx, yOff + dsy, zOff);
+
+            if (grayLevel > 0) {
+                imgResult.pixels[i] = imgB.pixels[i];
+                imgResult.pixels[i + 1] = imgB.pixels[i + 1];
+                imgResult.pixels[i + 2] = imgB.pixels[i + 2];
+                imgResult.pixels[i + 3] = 255
+            }
+            else if (imgA.pixels[i + 3] != 0) {
+                imgResult.pixels[i] = imgA.pixels[i];
+                imgResult.pixels[i + 1] = imgA.pixels[i + 1];
+                imgResult.pixels[i + 2] = imgA.pixels[i + 2];
+                imgResult.pixels[i + 3] = 255
+            }
+            else if (random() < 0.8) {
+                imgResult.pixels[i] = imgB.pixels[i];
+                imgResult.pixels[i + 1] = imgB.pixels[i + 1];
+                imgResult.pixels[i + 2] = imgB.pixels[i + 2];
+                imgResult.pixels[i + 3] = 255
+            }
+
+            xOff += mixerDensityInc;
+        }
+        yOff += mixerDensityInc;
+    }
+
+    dsx +=  mixerVelocity * noiseVel.normalize().x;
+    dsy +=  mixerVelocity * noiseVel.normalize().y;
+    zOff += mixerDensityInc;
+
+    imgResult.updatePixels(); 
+    return imgResult;
+}
+
+
+/**
+ * HELPER functions to convert from RGB to HSV
+ */
+ function rgb2hsv(r, g, b) {
+    r = r / COLOR_MAX;
+    g = g / COLOR_MAX;
+    b = b / COLOR_MAX;
+
+    let cMax = Math.max(r, g, b);
+    let cMin = Math.min(r, g, b);
+    let delta = cMax - cMin;
+    let h, s, v;
+
+    if (delta == 0) {
+        h = 0;
+    } else if (cMax == r) {
+        h = 60 * (((g - b) / delta) % 6);
+    } else if (cMax == g) {
+        h = 60 * ((b - r) / delta + 2);
+    } else {
+        h = 60 * ((r - g) / delta + 4);
+    }
+
+    if (cMax == 0) {
+        s = 0;
+    } else {
+        s = delta / cMax;
+    }
+
+    v = cMax;
+
+    return [h, s, v];
+}
+
+/**
+ * HELPER functions to convert from HSV to RGB
+ */
+function hsv2rgb(h, s, v) {
+    if (s == 0.0) {
+        v *= COLOR_MAX;
+        return [v, v, v];
+    } 
+    
+    let i = Math.round(h / 360 * 6.0);
+    let f = (h / 360 * 6.0) - i;
+
+    let [p, q, t] = [Math.round(COLOR_MAX*(v*(1.0-s))), Math.round(COLOR_MAX*(v*(1.0-s*f))), Math.round(COLOR_MAX*(v*(1.0-s*(1.0-f))))];
+
+    v*=COLOR_MAX; 
+    i = i % 6;
+
+    if (i == 0) {
+        return [v, t, p];
+    } else if (i == 1) {
+        return [q, v, p];
+    } else if (i == 2) {
+        return [p, v, t];
+    } else if (i == 3) {
+        return [p, q, v];
+    } else if (i == 4) {
+        return [t, p, v];
+    } else if (i == 5) {
+        return [v, p, q];
+    } else {
+        return [0, 0, 0];
+    }
+}
+
+
+
+function ShiftHue(srcImg, offset, flashRange, satValue) {
+    // Load the pixel arrays
+    srcImg.loadPixels();
+
+    offset += random(flashRange);
+
+    // Iterate over each pixel 
+    for (let i = 0; i < COLOR_DEPTH * (srcImg.width * srcImg.height); i += COLOR_DEPTH) {
+        // Process the pixel if it is not trasparent, i.e. alpha ch != 0
+        if (srcImg.pixels[i + 3] == COLOR_MAX) {
+            // Get the HSV coords.
+            let [h,s,v] = rgb2hsv(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
+
+            // Add an offset to the h, rember the wrap around 2PI
+            h += offset;
+
+            if (h < 0) {
+                h = 360 + h;
+            } else if (h > 360) {
+                h = h - 360;
+            }
+
+            if (satValue != 0) {
+                s = s + (satValue)*(1-s);
+            }
+
+            // Set back to RGB
+            [srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]] = hsv2rgb(h, s, v);
+        }
+    }
+
+    srcImg.updatePixels();
+}
+
+function ShiftHueCopy(srcImg, dstImg, offset) {
+
+    dstImg.copy(srcImg, 0, 0, srcImg.width, srcImg.height, 0, 0, dstImg.width, dstImg.height);
+
+    // Load the pixel arrays
+    srcImg.loadPixels();
+    dstImg.loadPixels();
+
+    // Iterate over each pixel 
+    for (let i = 0; i < COLOR_DEPTH * (srcImg.width * srcImg.height); i += COLOR_DEPTH) {
+        // Process the pixel if it is not trasparent, i.e. alpha ch != 0
+        if (srcImg.pixels[i + 3] == COLOR_MAX) {
+            // Get the HSV coords.
+            let [h,s,v] = rgb2hsv(srcImg.pixels[i], srcImg.pixels[i + 1], srcImg.pixels[i + 2]);
+
+            // Add an offset to the h, rember the wrap around 2PI
+            h += offset;
+
+            if (h < 0) {
+                h = 360 + h;
+            } else if (h > 360) {
+                h = h - 360;
+            }
+
+            // Set back to RGB
+            [dstImg.pixels[i], dstImg.pixels[i + 1], dstImg.pixels[i + 2]]= hsv2rgb(h, s, v);
+        }
+    }
+
+    dstImg.updatePixels();
+}
+
+
+/** ---------------------------------------------------------------------
+ *                            GLITCH PART
+ *  ---------------------------------------------------------------------
+ */
+
+function GlitchScanner(srcImg, direction, startX, startY, isdynamic)  {
+    let maxOffset = srcImg.width / 3;
+
+	if (direction <= 0.5) {
+		//horizontal: random - x
+        if (isdynamic) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let offset = floor(maxOffset * noise(y / (srcImg.height * 0.08)));
+                srcImg.copy(srcImg, startX + offset, y, 1, 1, 
+                                    startX + offset, y, srcImg.width - startX - offset, 1);
+            }
+        } else {
+		    srcImg.copy(srcImg, startX, 0, 1, srcImg.height, 
+                                startX, 0, srcImg.width - startX, srcImg.height);
+        }
+	}
+	else {
+        //vertical: random  -y
+        if (isdynamic) {
+            for (let x = 0; x < srcImg.width; x++) {
+                let offset = floor(maxOffset * noise(x / (srcImg.width * 0.08)));
+                srcImg.copy(srcImg, x, startY + offset, 1, 1,
+                                    x, startY + offset, 1, srcImg.height - startY - offset);
+            }
+        } else {
+            srcImg.copy(srcImg, 0, startY, srcImg.width, 1,
+                                0, startY, srcImg.width, srcImg.height - startY);
+        }
+	}
+}
+
+function GlitchScramble(srcImg, holes, factor) {
+
+	for (let  i = 0; i < holes.length; i++) {	
+		srcImg.copy(srcImg, holes[i].sx * factor, holes[i].sy * factor, holes[i].sw * factor, holes[i].sh * factor,
+                            holes[i].dx * factor, holes[i].dy * factor, holes[i].dw * factor, holes[i].dh * factor);
+	}
+}
+
+
+function GlitchWarp(srcImg, maxOffset) {
+	//var maxOffset = floor(random(1,width/2));
+	srcImg.loadPixels();
+
+    if (maxOffset > 0) {
+        for (let x = 0; x < srcImg.width; x++) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let i = (x + y * srcImg.width) * COLOR_DEPTH;
+                let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
+
+                srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
+                srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
+                srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
+            }
+        }
+    } else {
+        for (let x = srcImg.width - 1; x >= 0; x--) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let i = (x + y * srcImg.width) * COLOR_DEPTH;
+                let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
+
+                srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
+                srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
+                srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
+            }
+        }
+    }
+
+	srcImg.updatePixels();
+}
+
+
+function GlitchPixelBurn(srcImg, thresholdColor) {
+	//var thresholdColor = [random(255),random(255),random(255)];
+	srcImg.loadPixels();
+
+    for (let x = 0; x < srcImg.width; x++) {
+		for (let y = 0; y < srcImg.height; y++) {
+			let i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+			srcImg.pixels[i]     = (srcImg.pixels[i]     > thresholdColor[0]) ? srcImg.pixels[i] : 255;
+			srcImg.pixels[i + 1] = (srcImg.pixels[i + 1] > thresholdColor[1]) ? srcImg.pixels[i + 1] : 255;
+			srcImg.pixels[i + 2] = (srcImg.pixels[i + 2] > thresholdColor[2]) ? srcImg.pixels[i + 2] : 255;
+		}
+	}
+	srcImg.updatePixels();
+}
+
+function GlitchPixelNegative(srcImg) {
+	//var thresholdColor = [random(255),random(255),random(255)];
+	srcImg.loadPixels();
+
+    for (let x = 0; x < srcImg.width; x++) {
+		for (let y = 0; y < srcImg.height; y++) {
+			let i = (x + y * srcImg.width) * COLOR_DEPTH;
+
+			srcImg.pixels[i]     = 255 - srcImg.pixels[i];
+			srcImg.pixels[i + 1] = 255 - srcImg.pixels[i + 1];
+			srcImg.pixels[i + 2] = 255 - srcImg.pixels[i + 2];
+		}
+	}
+	srcImg.updatePixels();
+}
+
+
+
+/**
+ * Adds random noise to an image
+ * @param {p5.Image} img - Input image
+ * @param {number} [quantity = 0.5] - Quantity of noise to add
+ * @returns {p5.Image} Returns the image with added noise
+ */
+function imageNoise(srcImg, quantity = 0.5) {
+    let imgOut = srcImg.get();
+    imgOut.loadPixels();
+    for (let i = 0; i < imgOut.pixels.length; i += 4) {
+      imgOut.pixels[i] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 1] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 2] += round(quantity * 255 * (random() - 0.5));
+    }
+    imgOut.updatePixels();
+    return imgOut;
+  }
+
+  function addNoise(quantity = 0.5) {
+    let imgOut = get(); //drawingContext.get();
+    imgOut.loadPixels();
+    for (let i = 0; i < imgOut.pixels.length; i += 4) {
+      imgOut.pixels[i] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 1] += round(quantity * 255 * (random() - 0.5));
+      imgOut.pixels[i + 2] += round(quantity * 255 * (random() - 0.5));
+    }
+    imgOut.updatePixels();
+    return imgOut;
+  }
+
+
+  /**
+ * Translate RGB channels individually
+ * @param {p5.Image} img - Input image
+ * @param {number} [rx = 0] - Horizontal translation of the red channel
+ * @param {number} [ry = 0] - Vertical translation of the red channel
+ * @param {number} [gx = 0] - Horizontal translation of the green channel
+ * @param {number} [gy = 0] - Vertical translation of the green channel
+ * @param {number} [bx = 0] - Horizontal translation of the blue channel
+ * @param {number} [by = 0] - Vertical translation of the blue channel
+ * @returns {p5.Image} Returns the image translated RGB channels
+ */
+function imageRGBTranslate(srcImg, rx = 0, ry = 0, gx = 0, gy = 0, bx = 0, by = 0) {
+    let w = srcImg.width;
+    let h = srcImg.height;
+    let imgOut = createImage(w, h);
+    let rxOut, ryOut, gxOut, gyOut, bxOut, byOut;
+    let ir, ig, ib, i;
+
+    srcImg.loadPixels();
+    imgOut.loadPixels();
+
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        rxOut = (x + rx) % w; //constrain(x + rx, 0, w - 1);
+        ryOut = (y + ry) % h; //constrain(y + ry, 0, h - 1);
+        gxOut = (x + gx) % w; //constrain(x + gx, 0, w - 1);
+        gyOut = (y + gy) % h; //constrain(y + gy, 0, h - 1);
+        bxOut = (x + bx) % w; //constrain(x + bx, 0, w - 1);
+        byOut = (y + by) % h; //constrain(y + by, 0, h - 1);
+
+        ir = 4 * (rxOut + ryOut * w);
+        ig = 4 * (gxOut + gyOut * w) + 1;
+        ib = 4 * (bxOut + byOut * w) + 2;
+        i = 4 * (x + y * w);
+
+        imgOut.pixels[ir] = srcImg.pixels[i];
+        imgOut.pixels[ig] = srcImg.pixels[i + 1];
+        imgOut.pixels[ib] = srcImg.pixels[i + 2];
+        //imgOut.pixels[i + 3] = 255;
+      }
+    }
+
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            i = 4 * (x + y * w);
+            if ((imgOut.pixels[i] === 0) && (imgOut.pixels[i+1] === 0) && (imgOut.pixels[i+2] === 0)) {
+                imgOut.pixels[i + 3] = 0;
+            } else {
+                imgOut.pixels[i + 3] = 255; 
+            }
+        }
+    }
+
+    imgOut.updatePixels();
+
+    srcImg.copy(imgOut, 0, 0, w, h, 0, 0, w, h);
+  }
