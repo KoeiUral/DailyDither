@@ -1,8 +1,12 @@
+const DEFAULT_W = 400;
+const DEFAULT_H = 400;
 
 const FONT_SIZE = 26;
 const COLOR_MAX = 255;
 const INCREMENT = 0.01;
 const INCREMENT_S = INCREMENT * 5;
+
+const FONT_PATH = './media/font/C64_Pro_Mono-STYLE.ttf';
 
 let COLOR_DEPTH = 4;
 let fontImage;
@@ -17,6 +21,8 @@ let noiseVel;
 let mixerDensityInc = INCREMENT;
 let mixerVelocity = INCREMENT_S;
 
+let fontReady = false;
+let myFont;
 
 let M = [];
 
@@ -35,10 +41,9 @@ function updateColorDepth(depth) {
  * @param {*} scaleFactor Scale factor
  * @returns 
  */
-function upScale(srcImg, dstImg, scaleFactor, depthOffset) {
+function upScale(srcImg, dstImg, scaleFactor) {
     let sx, sy, dx, dy;
     let si, di;
-    let colorDepth = depthOffset;
 
     dstImg = createImage(srcImg.width * scaleFactor, srcImg.height * scaleFactor);
 
@@ -48,12 +53,12 @@ function upScale(srcImg, dstImg, scaleFactor, depthOffset) {
     // Iterate over the source image
     for (sy = 0; sy < srcImg.height; sy++) {
         for (sx = 0; sx < srcImg.width; sx++) {
-            si = (sx + sy * srcImg.width) * colorDepth;//COLOR_DEPTH;
+            si = (sx + sy * srcImg.width) * COLOR_DEPTH;
 
             // Copy into the upscaled dest pixel
             for (dy = 0; dy < scaleFactor; dy++) {
                 for (dx = 0; dx < scaleFactor; dx++) {
-                    di = ((sx * scaleFactor + dx) + (sy * scaleFactor + dy) * dstImg.width) * colorDepth;//COLOR_DEPTH
+                    di = ((sx * scaleFactor + dx) + (sy * scaleFactor + dy) * dstImg.width) * COLOR_DEPTH
 
                     dstImg.pixels[di] = srcImg.pixels[si];
                     dstImg.pixels[di + 1] = srcImg.pixels[si + 1];
@@ -272,10 +277,10 @@ function addAlpha(srcImg, mixerOn, scale) {
 const FREQ = [1, 2, 4, 8, 16, 32];
 const AMP = [1, 1/2, 1/3, 1/4, 1/5, 1/6];
 const AMP_SUM = AMP[0] + AMP[1] + AMP[2] + AMP[3] + AMP[4] + AMP[5];
-const TIME_INC = 0;
-const SIN_K = 2;
-const EXP = 2;
-const DIST = 0.4;
+const TIME_INC = 0.1;
+const SIN_K = 1.3;
+const EXP = 1.2;
+const DIST = 4;
 
 function addAlphaAmp(srcImg, mixerOn, scale) {
     let x, y, i;
@@ -301,7 +306,7 @@ function addAlphaAmp(srcImg, mixerOn, scale) {
                 }
                 e = e / AMP_SUM;
                 e = Math.pow(e, EXP);
-                e = (1 - DIST) * e + DIST * (1 - d);  //equal to -> e = lerp (e, 1 - d, DIST);
+                //e = (1 - DIST) * e + DIST * (1 - d);  //equal to -> e = lerp (e, 1 - d, DIST);
             }
 
             if ((e < 0.5) || ((srcImg.pixels[i] === 0) && (srcImg.pixels[i+1] === 0) && (srcImg.pixels[i+2] === 0))) {
@@ -318,6 +323,31 @@ function addAlphaAmp(srcImg, mixerOn, scale) {
     srcImg.updatePixels(); 
 }
 
+
+function addAlphaMask(srcImg, imgScale, mask, lowTh, highTh) {
+    let maskScale = DEFAULT_H / mask.length;
+    let mx, my, i;
+    //console.log("Mask Scale equal to %d", maskScale);
+
+    srcImg.loadPixels();
+
+    for (let y = 0; y < srcImg.height; y++) {
+        for (let x = 0; x < srcImg.width; x++) {
+            mx = floor (x * imgScale / maskScale);
+            my = floor (y * imgScale / maskScale);
+            i = (x + y * srcImg.width) * 4;
+
+            /* If the mask value for pixel x,y is contained in the range, then solid else transparent */
+            if ((mask[my][mx] >= lowTh) && (mask[my][mx] <= highTh)) {
+                srcImg.pixels[i + 3] = 255;
+            } else {
+                srcImg.pixels[i + 3] = 0;
+            }
+        }
+    }
+
+    srcImg.updatePixels(); 
+}
 
 function asciify(srcImg, dstImage) {
     let x, y;
@@ -661,6 +691,39 @@ function ShiftHueCopy(srcImg, dstImg, offset) {
 }
 
 
+
+function getFiles(path) {
+    let files = [];
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.open('GET', path, false); // false for synchronous request
+    xmlHttp.send(null);
+
+    let ret = xmlHttp.responseText;
+    let contentList = ret.split('\n');
+    let rx;
+
+    // build up the regex according to browser
+    if (navigator.userAgent.indexOf("Firefox") != -1) {
+        //rx = /href=\".*\/(.*)\"\sclass/;
+        rx = /title=\"(.*)\"><span/;
+    } else if (navigator.userAgent.indexOf("Chrome") != -1) {
+        rx = /href=\"(.+)\?/;
+    }
+
+    for (let i = 0; i < contentList.length; i++) {
+        //const rx = /href=\"(.*)\"\sclass/;
+        //const rx = /href=\"(.+)\?/;
+        let found = rx.exec(contentList[i]);
+
+        if ((found !== null) && (found[1] !== "..")){
+            files.push(found[1]);
+        }
+    }
+
+    return files;
+}
+
+
 /** ---------------------------------------------------------------------
  *                            GLITCH PART
  *  ---------------------------------------------------------------------
@@ -700,8 +763,8 @@ function GlitchScanner(srcImg, direction, startX, startY, isdynamic)  {
 function GlitchScramble(srcImg, holes, factor) {
 
 	for (let  i = 0; i < holes.length; i++) {	
-		srcImg.copy(srcImg, holes[i].sx * factor, holes[i].sy * factor, holes[i].sw * factor, holes[i].sh * factor,
-                            holes[i].dx * factor, holes[i].dy * factor, holes[i].dw * factor, holes[i].dh * factor);
+		srcImg.copy(srcImg, round(holes[i].sx * factor), round(holes[i].sy * factor), round(holes[i].sw * factor), round(holes[i].sh * factor),
+                            round(holes[i].dx * factor), round(holes[i].dy * factor), round(holes[i].dw * factor), round(holes[i].dh * factor));
 	}
 }
 
@@ -770,7 +833,17 @@ function GlitchPixelNegative(srcImg) {
 	srcImg.updatePixels();
 }
 
+function GlitchAddNoise(srcImg, quantity = 0.5) {
+	srcImg.loadPixels();
 
+    for (let i = 0; i < srcImg.pixels.length; i += 4) {
+        srcImg.pixels[i] += round(quantity * 255 * (random() - 0.5));
+        srcImg.pixels[i + 1] += round(quantity * 255 * (random() - 0.5));
+        srcImg.pixels[i + 2] += round(quantity * 255 * (random() - 0.5));
+    }
+
+    srcImg.updatePixels();
+}
 
 /**
  * Adds random noise to an image

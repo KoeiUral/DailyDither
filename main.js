@@ -1,23 +1,72 @@
+let myMixer;
+let myCanvas;
+let recDuration;
 
+const WIDGET_SIZE = 20;
+const DEBUG = false;
 
 function preload() {
-    fontImage = loadImage("./font/c64Ascii.png");
+    myFont = loadFont(FONT_PATH);
+
 }
 
 function mouseClicked() {
-    if ((mouseClickEnable) && (mouseX < myCanvas.width) && (mouseY < myCanvas.height)) {
-        let zValue = parseInt(random(-800, -200));
-        addTransaltionTarget(mouseX, mouseY, zValue);
-    }
+
+}
+
+function updateGifPeriod() {
+    let tempVal = parseInt(this.value());
+    recDuration = (isNaN(tempVal)) ? 0 : tempVal;
+}
+
+function startSavingGIF() {
+    saveGif('gifMatta', recDuration, {  units: 'frames', silent: false, notificationDuration: 1});
+}
+
+function startSavingWEBM() {
+
 }
 
 
+function createGui() {
+    /* Hook the canvas */
+    myCanvas = createCanvas(DEFAULT_W, DEFAULT_H);
+    myCanvas.parent('html_canvas');
+
+    gifDurationInput =  createInput('0');
+    gifDurationInput.size(WIDGET_SIZE);
+    gifDurationInput.input(updateGifPeriod);
+
+    gifBtn = createButton('SAVE GIF');
+    gifBtn.mousePressed(startSavingGIF);
+
+    /* Hook widget to html */
+    gifDurationInput.parent('html_gifDurInput');
+    gifBtn.parent('html_gifBtn');
+}
+
+
+
 function setup() {
-    init_engine();
-    create_gui();
+    // Init graphic lib
+    initNoise();
+    initBayerMatrix();
+    fontReady = true;
+
+    myMixer = new Mixer();
+    myMixer.setTestProp();
+
+    createGui();
 }
 
 function draw() {
     background(0);
-    render();
+
+    myMixer.compose();
+    myMixer.render();
+
+    if (DEBUG) {
+        let fps = round(frameRate());
+        text(fps, 50, 50);
+    }
 }
