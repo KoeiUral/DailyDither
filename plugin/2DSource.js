@@ -13,7 +13,20 @@ class Source2D extends Source {
 
     setSpecificProperties() {
         // Set image
+        let twoDPath;
+        let videoFiles = getFiles(VIDEO_PATH);
+        let imageFiles = getFiles(IMAGE_PATH);
 
+        // Choose Video vs Image
+        if ((random() < 0.2)) {
+            let videoId = floor(random(videoFiles.length));
+            twoDPath = videoFiles[videoId];
+        } else {
+            let imageId = floor(random(imageFiles.length));
+            twoDPath = imageFiles[imageId];
+        }
+
+        this.loadModel(twoDPath);
     }
 
     loadModel(path, file) {

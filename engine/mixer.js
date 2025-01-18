@@ -53,7 +53,7 @@ class Mixer {
             //let index = floor(random(SIZE_LIST.length));
             //let cellSize = (size != undefined) ? size : SIZE_LIST[index];
             
-            newSource = new SourceAutoma(0, COLOR_NBR, RULE_VAL);
+            newSource = new SourceAutoma(4, COLOR_NBR, RULE_VAL);
             newSource.setRandomProperties();
 
             newSource.sampling = newSource.currentSize;
@@ -226,7 +226,7 @@ class Mixer {
 
     setTestProp () {
         this.addRandomSources();
-        //this.addSource(SourceType.AUTOMA, 10);
+        //this.addSource(SourceType.TWO_D);
         //this.addSource(SourceType.AUTOMA, 8);
         //this.addSource(SourceType.AUTOMA, 20);
         //this.addSource(SourceType.DUMMY);

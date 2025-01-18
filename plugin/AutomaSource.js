@@ -139,7 +139,7 @@ class SourceAutoma extends Source {
         // Set the size
         let index = floor(random(SIZE_LIST.length));
         this.currentSize = SIZE_LIST[index];
-        this.maxCols = ceil(DEFAULT_H / this.currentSize);
+        this.maxCols = DEFAULT_H / this.currentSize;
 
         // Set depth and rule
         this.currentDepth = floor(random(MIN_DEPTH, MAX_DEPTH));
@@ -151,6 +151,7 @@ class SourceAutoma extends Source {
 
         this.isPaletteLoaded = false;
         loadJSON(COLOR_PATH + fileName, this.onJsonLoaded.bind(this));
+        console.log("loading pallette " + COLOR_PATH + fileName);
     }
 
     onJsonLoaded(jData) {
