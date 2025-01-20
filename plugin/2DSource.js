@@ -18,7 +18,7 @@ class Source2D extends Source {
         let imageFiles = getFiles(IMAGE_PATH);
 
         // Choose Video vs Image
-        if ((random() < 0.2)) {
+        if ((random() < 0.5)) {
             let videoId = floor(random(videoFiles.length));
             twoDPath = videoFiles[videoId];
         } else {
@@ -27,6 +27,8 @@ class Source2D extends Source {
         }
 
         this.loadModel(twoDPath);
+
+        console.log("     2D - image/video path: %s", twoDPath);
     }
 
     loadModel(path, file) {

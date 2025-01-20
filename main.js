@@ -1,6 +1,6 @@
 let myMixer;
 let myCanvas;
-let recDuration;
+let recDuration = 100;
 
 const WIDGET_SIZE = 20;
 const DEBUG = false;
@@ -33,7 +33,7 @@ function createGui() {
     myCanvas = createCanvas(DEFAULT_W, DEFAULT_H);
     myCanvas.parent('html_canvas');
 
-    gifDurationInput =  createInput('0');
+    gifDurationInput =  createInput('100');
     gifDurationInput.size(WIDGET_SIZE);
     gifDurationInput.input(updateGifPeriod);
 

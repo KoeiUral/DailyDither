@@ -54,17 +54,17 @@ class Mixer {
             //let cellSize = (size != undefined) ? size : SIZE_LIST[index];
             
             newSource = new SourceAutoma(4, COLOR_NBR, RULE_VAL);
-            newSource.setRandomProperties();
+            newSource.setRandomProperties(type);
 
             newSource.sampling = newSource.currentSize;
             newSource.startRandomRule();
         } else if (type === SourceType.THREE_D) {
             newSource = new Source3D();
-            newSource.setRandomProperties();
+            newSource.setRandomProperties(type);
             //newSource.loadModel("bulldog.obj");
         } else if (type === SourceType.TWO_D) {
             newSource = new Source2D();
-            newSource.setRandomProperties();
+            newSource.setRandomProperties(type);
             //newSource.loadModel("SampleVideo_1280x720_2mb.mp4");
         }
 
@@ -220,7 +220,6 @@ class Mixer {
             }
 
             this.addSource(currentType);
-            console.log("ADDED " + currentType);
         }
     }
 

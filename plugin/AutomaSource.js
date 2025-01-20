@@ -139,11 +139,13 @@ class SourceAutoma extends Source {
         // Set the size
         let index = floor(random(SIZE_LIST.length));
         this.currentSize = SIZE_LIST[index];
-        this.maxCols = DEFAULT_H / this.currentSize;
+        this.maxCols = round(DEFAULT_H / this.currentSize);
 
         // Set depth and rule
         this.currentDepth = floor(random(MIN_DEPTH, MAX_DEPTH));
         this.currentRule = floor(random(pow(this.currentDepth , this.currentDepth * 3 - 2)));
+
+        console.log("AUTOMATA - size:%d, depth:%d, cols:%f, color:%s", this.currentSize, this.currentDepth, this.maxCols, colorFiles[colorId]);
     }
 
     loadPalette(path, file) {
@@ -151,14 +153,13 @@ class SourceAutoma extends Source {
 
         this.isPaletteLoaded = false;
         loadJSON(COLOR_PATH + fileName, this.onJsonLoaded.bind(this));
-        console.log("loading pallette " + COLOR_PATH + fileName);
     }
 
     onJsonLoaded(jData) {
-        for (let i = 0; i < this.fullPalette.length; i++) {
+        for (let i = 0; i < MAX_DEPTH; i++) {
             this.fullPalette[i] = color(jData[i].levels[0], jData[i].levels[1], jData[i].levels[2]);
         }
-        
+ 
         this.isPaletteLoaded = true;
     }
 

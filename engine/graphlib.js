@@ -1,5 +1,5 @@
-const DEFAULT_W = 400;
-const DEFAULT_H = 400;
+const DEFAULT_W = 600;
+const DEFAULT_H = 600;
 
 const FONT_SIZE = 26;
 const COLOR_MAX = 255;

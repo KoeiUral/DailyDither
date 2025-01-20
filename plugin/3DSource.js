@@ -37,13 +37,13 @@ class Source3D extends Source {
         let modelFiles = getFiles(MODEL_PATH);
         let videoFiles = getFiles(VIDEO_PATH);
         let imageFiles = getFiles(IMAGE_PATH);
+        let texPath = '';
 
         let modelId = floor(random(modelFiles.length));
         this.loadModel(modelFiles[modelId]);
 
         // Apply a texture 
         if (random() < 0.5) {
-            let texPath;
             // Choose Video vs Image
             if ((random() < 0.2)) {
                 let videoId = floor(random(videoFiles.length));
@@ -60,20 +60,22 @@ class Source3D extends Source {
         this.yRot = random(0.3) * (random() < 0.5);
         this.zRot = random(0.3) * (random() < 0.5);
 
-        let pointsNbr = floor(random(10));
+        let pointsNbr = floor(random(10)) * (random() < 0.5);
         for (let i = 0; i < pointsNbr; i++) {
             let xValue = floor(random(DEFAULT_W));
             let yValue = floor(random(DEFAULT_H));
             let zValue = floor(random(-800, -200));
             this.addTransaltionTarget(xValue, yValue, zValue);
         }
+
+        console.log("      3D - model: %s, texture: %s, rotX: %f, rotY: %f, rotZ: %f, transPoints: %d", modelFiles[modelId], texPath, this.xRot, this.yRot, this.zRot, pointsNbr);
     }
 
     loadModel(path, file) {
         let fileName = (typeof file !== "undefined") ? file.name : path;
         
         this.isModelReady = false;
-        this.model = loadModel(MODEL_PATH + fileName, true, this.onModelLoaded.bind(this));
+        this.model = loadModel(MODEL_PATH + fileName, true, this.onModelLoaded.bind(this), this.onModelFailed.bind(this), '.obj');
     }
 
     loadTexture(path, file) {
@@ -92,6 +94,11 @@ class Source3D extends Source {
 
     onModelLoaded() {
         this.isModelReady = true;
+    }
+    
+    onModelFailed() {
+        console.log("Error loading the 3D model!");
+        this.isModelReady = false;
     }
 
     onTextureLoaded() {

@@ -11,6 +11,7 @@ const DitherType = {
 
 class Source {
     constructor() {
+        this.type = 0;
         this.glitchAlgo = DitherType.NONE;
 
         this.isBWOn = false;
@@ -43,7 +44,8 @@ class Source {
 
     }
 
-    setRandomProperties() {
+    setRandomProperties(type) {
+        this.type = type;
         // Call specific properties
         this.setSpecificProperties();
 
@@ -53,7 +55,7 @@ class Source {
         this.hueInc = floor(random(0, 15)) * (random() < 0.5);
         this.hueFlash = floor(random(0, 20)) * (random() < 0.5);;
         this.hueSaturation = floor(random()) * (random() < 0.5);
-        this.sampling = 1 + floor(random(1, 4)) * (random() < 0.5);
+        this.sampling = 1 + floor(random(1, 10)) * (random() < 0.5);
         
         let ditherProb = random();
         this.ditherAlgo = (ditherProb > 0.33) ? DitherType.STEIN : 0;
@@ -63,7 +65,7 @@ class Source {
 
         this.isAsciiOn = (random() < 0.3);;
         this.isAsciiColor = (random() < 0.2);
-        this.sampling = (this.isAsciiOn) ? 8 : this.sampling;
+        this.sampling = ((this.isAsciiOn) && (this.sampling < 8)) ? 8 : this.sampling;
 
         // Glitcher
         this.glitcher.setImagScale(this.sampling);
@@ -71,8 +73,12 @@ class Source {
         this.dynamicGlitch = (random() < 0.7);
 
         if (random() < 0.5) {
-            this.glitcher.startSequence();
+           this.glitcher.startSequence();
         }
+
+        console.log("\tsampling: %d, glitchScale: %d, preGlitch: %d", this.sampling, this.glitcher.imageScale, this.glitcher.isPreOn);
+        console.log("\tascii: %d, dither: %s", this.isAsciiOn, this.ditherAlgo);
+        console.log("\ttype: %s", this.type);
     }
 
     // Applying enabled filters to the img
