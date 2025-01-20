@@ -2,6 +2,17 @@
 const MODEL_PATH = './media/model/';
 const MAX_TARGETS = 3;
 
+const TEXT_P = 0.5;
+const TEXT_VID_P = 0.2;
+const ROT_X_P = 0.5;
+const ROT_Y_P = 0.5;
+const ROT_Z_P = 0.5;
+const ROT_MAX = 0.3;
+const TRAN_POINT_P = 0.5;
+const TRAN_POINT_MAX = 10;
+const TRAN_Z_MIN = -800;
+const TRAN_Z_MAX = -200;
+
 
 class Source3D extends Source {
     constructor() {
@@ -43,9 +54,9 @@ class Source3D extends Source {
         this.loadModel(modelFiles[modelId]);
 
         // Apply a texture 
-        if (random() < 0.5) {
+        if (random() < TEXT_P) {
             // Choose Video vs Image
-            if ((random() < 0.2)) {
+            if ((random() < TEXT_VID_P)) {
                 let videoId = floor(random(videoFiles.length));
                 texPath = videoFiles[videoId];
             } else {
@@ -56,19 +67,19 @@ class Source3D extends Source {
             this.loadTexture(texPath);
         }
 
-        this.xRot = random(0.3) * (random() < 0.5);
-        this.yRot = random(0.3) * (random() < 0.5);
-        this.zRot = random(0.3) * (random() < 0.5);
+        this.xRot = random(ROT_MAX) * (random() < ROT_X_P);
+        this.yRot = random(ROT_MAX) * (random() < ROT_Y_P);
+        this.zRot = random(ROT_MAX) * (random() < ROT_Z_P);
 
-        let pointsNbr = floor(random(10)) * (random() < 0.5);
+        let pointsNbr = floor(random(TRAN_POINT_MAX)) * (random() < TRAN_POINT_P);
         for (let i = 0; i < pointsNbr; i++) {
             let xValue = floor(random(DEFAULT_W));
             let yValue = floor(random(DEFAULT_H));
-            let zValue = floor(random(-800, -200));
+            let zValue = floor(random(TRAN_Z_MIN, TRAN_Z_MAX));
             this.addTransaltionTarget(xValue, yValue, zValue);
         }
 
-        console.log("      3D - model: %s, texture: %s, rotX: %f, rotY: %f, rotZ: %f, transPoints: %d", modelFiles[modelId], texPath, this.xRot, this.yRot, this.zRot, pointsNbr);
+        console.log("     3D - model: %s, texture: %s, rotX: %f, rotY: %f, rotZ: %f, transPoints: %d", modelFiles[modelId], texPath, this.xRot, this.yRot, this.zRot, pointsNbr);
     }
 
     loadModel(path, file) {

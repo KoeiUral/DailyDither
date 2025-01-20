@@ -8,6 +8,11 @@ const EXP = 2;
 const DIST = 0.4;
 */
 
+const MAX_SRC_NBR = 4;
+const AUTOMATA_P = 0.5;
+const TWO_D_P = 0.8;
+const THREE_D_P = 1;
+
 
 
 const SourceType = {
@@ -49,10 +54,7 @@ class Mixer {
         if (type === SourceType.DUMMY) {
             newSource = new DummySource();
             newSource.setBg(floor(random(255)), floor(random(255)), floor(random(255)));
-        } else if (type === SourceType.AUTOMA) {
-            //let index = floor(random(SIZE_LIST.length));
-            //let cellSize = (size != undefined) ? size : SIZE_LIST[index];
-            
+        } else if (type === SourceType.AUTOMA) {            
             newSource = new SourceAutoma(4, COLOR_NBR, RULE_VAL);
             newSource.setRandomProperties(type);
 
@@ -61,11 +63,9 @@ class Mixer {
         } else if (type === SourceType.THREE_D) {
             newSource = new Source3D();
             newSource.setRandomProperties(type);
-            //newSource.loadModel("bulldog.obj");
         } else if (type === SourceType.TWO_D) {
             newSource = new Source2D();
             newSource.setRandomProperties(type);
-            //newSource.loadModel("SampleVideo_1280x720_2mb.mp4");
         }
 
         this.sourceList.push(newSource);
@@ -192,28 +192,16 @@ class Mixer {
         }
     }
 
-    /*
-    testMask() {
-        this.sourceList.push(new Source());
-        this.sourceList[0].sampling = 30;
-        console.log("pizza");
-
-        this.computeNoiseMask();
-
-        console.log("Mask: %o", this.noiseMask);
-    }
-    */
-
     addRandomSources() {
-        let sourceNbr = round(random(1, 4));
+        let sourceNbr = round(random(1, MAX_SRC_NBR));
 
         for (let i = 0; i < sourceNbr; i++) {
             let typeProb = random();
             let currentType;
 
-            if (typeProb < 0.5) {
+            if (typeProb < AUTOMATA_P) {
                 currentType = SourceType.AUTOMA;
-            } else if (typeProb < 0.8) {
+            } else if (typeProb < TWO_D_P) {
                 currentType = SourceType.TWO_D;
             } else {
                 currentType = SourceType.THREE_D;

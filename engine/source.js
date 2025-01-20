@@ -1,4 +1,3 @@
-
 // TODO: move it in the graphic lib
 const DitherType = {
     NONE: 0,
@@ -6,8 +5,24 @@ const DitherType = {
     BAYER: 2
   };
 
+const BW_P = 0.2;
+const HUE_OFF_P = 0.5;
+const HUE_INC_P = 0.5;
+const HUE_FLASH_P = 0.5;
+const HUE_SAT_P = 0.5;
+const SAMPLE_P = 0.8;
+const DIT_STEIN_P = 0.33;
+const DIT_BAY_P = 0.66;
+const ASCII_P = 0.3;
+const ASCII_COL_P = 0.2;
+const GLI_PRE_P = 0.3;
+const GLI_DYN_P = 0.7;
+const GLI_ON_P = 0.6;
 
-
+const HUE_OFF_MAX = 100;
+const HUE_INC_MAX = 15;
+const HUE_FLASH_MAX = 20;
+const SAMPLING_MAX = 10;
 
 class Source {
     constructor() {
@@ -50,34 +65,35 @@ class Source {
         this.setSpecificProperties();
 
         // Set the common properties to each source
-        this.isBWOn = (random() < 0.2);
-        this.hueOffset = floor(random(0, 100)) * (random() < 0.5);
-        this.hueInc = floor(random(0, 15)) * (random() < 0.5);
-        this.hueFlash = floor(random(0, 20)) * (random() < 0.5);;
-        this.hueSaturation = floor(random()) * (random() < 0.5);
-        this.sampling = 1 + floor(random(1, 10)) * (random() < 0.5);
+        this.isBWOn = (random() < BW_P);
+        this.hueOffset = floor(random(0, HUE_OFF_MAX)) * (random() < HUE_OFF_P);
+        this.hueInc = floor(random(0, HUE_INC_MAX)) * (random() < HUE_INC_P);
+        this.hueFlash = floor(random(0, HUE_FLASH_MAX)) * (random() < HUE_FLASH_P);
+        this.hueSaturation = floor(random()) * (random() < HUE_SAT_P);
+        this.sampling = 1 + floor(random(1, SAMPLING_MAX)) * (random() < SAMPLE_P);
         
         let ditherProb = random();
-        this.ditherAlgo = (ditherProb > 0.33) ? DitherType.STEIN : 0;
-        this.ditherAlgo = (ditherProb > 0.66) ? DitherType.BAYER : this.ditherAlgo;
+        this.ditherAlgo = (ditherProb > DIT_STEIN_P) ? DitherType.STEIN : 0;
+        this.ditherAlgo = (ditherProb > DIT_BAY_P) ? DitherType.BAYER : this.ditherAlgo;
         this.colDither = 4; // TODO: set random value
         this.dimDither = 2; // TODO: set random value
 
-        this.isAsciiOn = (random() < 0.3);;
-        this.isAsciiColor = (random() < 0.2);
+        this.isAsciiOn = (random() < ASCII_P);;
+        this.isAsciiColor = (random() < ASCII_COL_P);
         this.sampling = ((this.isAsciiOn) && (this.sampling < 8)) ? 8 : this.sampling;
 
         // Glitcher
         this.glitcher.setImagScale(this.sampling);
-        this.glitcher.isPreOn = (random() < 0.3);
-        this.dynamicGlitch = (random() < 0.7);
+        this.glitcher.isPreOn = (random() < GLI_PRE_P);
+        this.dynamicGlitch = (random() < GLI_DYN_P);
 
-        if (random() < 0.5) {
+        if (random() < GLI_ON_P) {
            this.glitcher.startSequence();
         }
 
         console.log("\tsampling: %d, glitchScale: %d, preGlitch: %d", this.sampling, this.glitcher.imageScale, this.glitcher.isPreOn);
         console.log("\tascii: %d, dither: %s", this.isAsciiOn, this.ditherAlgo);
+        console.log("\thue offset: %d, hue inc: %d, hue flash: %d,  hue sat: %d", this.hueOffset, this.hueInc, this.hueFlash, this.hueSaturation);
     }
 
     // Applying enabled filters to the img

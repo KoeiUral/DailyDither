@@ -52,7 +52,7 @@ function setup() {
     initGraphLib();
 
     myMixer = new Mixer();
-    myMixer.setTestProp();
+    myMixer.addRandomSources();
 
     createGui();
 }

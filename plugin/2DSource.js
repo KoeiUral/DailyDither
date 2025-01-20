@@ -1,6 +1,8 @@
 const IMAGE_PATH = './media/image/';
 const VIDEO_PATH = './media/video/';
 
+const VIDEO_P = 0.5;
+
 class Source2D extends Source {
     constructor() {
         super();
@@ -18,7 +20,7 @@ class Source2D extends Source {
         let imageFiles = getFiles(IMAGE_PATH);
 
         // Choose Video vs Image
-        if ((random() < 0.5)) {
+        if ((random() < VIDEO_P)) {
             let videoId = floor(random(videoFiles.length));
             twoDPath = videoFiles[videoId];
         } else {
