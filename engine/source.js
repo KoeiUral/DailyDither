@@ -78,7 +78,6 @@ class Source {
 
         console.log("\tsampling: %d, glitchScale: %d, preGlitch: %d", this.sampling, this.glitcher.imageScale, this.glitcher.isPreOn);
         console.log("\tascii: %d, dither: %s", this.isAsciiOn, this.ditherAlgo);
-        console.log("\ttype: %s", this.type);
     }
 
     // Applying enabled filters to the img

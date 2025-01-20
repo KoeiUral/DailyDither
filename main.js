@@ -49,9 +49,7 @@ function createGui() {
 
 function setup() {
     // Init graphic lib
-    initNoise();
-    initBayerMatrix();
-    fontReady = true;
+    initGraphLib();
 
     myMixer = new Mixer();
     myMixer.setTestProp();

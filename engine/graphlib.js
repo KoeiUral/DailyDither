@@ -228,9 +228,14 @@ function initFonts(fontImg) {
     fontMap.sort((a, b) => {
         return a.br - b.br;
     });
+}
 
 
-
+function initGraphLib() {
+    pixelDensity(1);
+    initNoise();
+    initBayerMatrix();
+    fontReady = true;
 }
 
 function addAlpha(srcImg, mixerOn, scale) {
