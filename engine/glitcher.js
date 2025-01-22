@@ -197,21 +197,19 @@ class Glitcher {
         if (this.frames > 0) {
             for (let i = 0; i <  this.glitchEffects.length; i++) {
                 if (this.glitchEffects[i] == GlitchType.SCANLINE) {
-                    GlitchScanner(image, this.scanOptions[SCAN_DIR], this.scanOptions[SCAN_X], this.scanOptions[SCAN_Y], this.dynamicGlitch);
+                    this.scanner(image, this.scanOptions[SCAN_DIR], this.scanOptions[SCAN_X], this.scanOptions[SCAN_Y], this.dynamicGlitch);
                 
                 } else if (this.glitchEffects[i] == GlitchType.SCRAMBLE) {
                     let factor = (this.dynamicGlitch) ? (0.2 * noise(0.1 * frameCount) + 0.9) : 1;
-                    GlitchScramble(image, this.scrambleOptions, factor);
+                    this.scramble(image, this.scrambleOptions, factor);
                 
                 } else if (this.glitchEffects[i] == GlitchType.WARP) {
                     let factor = (this.dynamicGlitch) ? round(this.warpOptions[WARP_OFF] * noise(0.4 * frameCount)) : this.warpOptions[WARP_OFF];
-                    GlitchWarp(image, factor);
-                //} else if (this.glitchEffects[i] == GlitchType.BURN) {
-                //    GlitchPixelBurn(image, this.burnOptions);
+                    this.warp(image, factor);
                  } else if (this.glitchEffects[i] == GlitchType.NOISE) {
-                    GlitchAddNoise(image, this.noiseOptions[NOISE_LEVEL]);
+                    this.addNoise(image, this.noiseOptions[NOISE_LEVEL]);
                 } else if (this.glitchEffects[i] == GlitchType.NEG) {
-                    GlitchPixelNegative(image);
+                    this.pixelNegative(image);
                 } else if (this.glitchEffects[i] == GlitchType.RGBSHIFT) {
                     let rx, ry, gx, gy, bx, by;
                     let factor = (this.dynamicGlitch) ? round(noise(0.4 * frameCount)) : 1;
@@ -221,11 +219,170 @@ class Glitcher {
                     gy = round(factor * this.rgbShiftOptions[SHIFT_GY]);
                     bx = round(factor * this.rgbShiftOptions[SHIFT_BX]);
                     by = round(factor * this.rgbShiftOptions[SHIFT_BY]);
-                    imageRGBTranslate(image, rx, ry, gx, gy, bx, by);
+                    this.rgbTranslate(image, rx, ry, gx, gy, bx, by);
                 }
             }
 
             this.frames--;
         }
     }
+
+    // ------------------------------GLITCH EFFECT FUNCTIONS------------------------------ //
+
+    scanner(srcImg, direction, startX, startY, isdynamic) {
+        let maxOffset = srcImg.width / 3;
+    
+        if (direction <= 0.5) {
+            //horizontal: random - x
+            if (isdynamic) {
+                for (let y = 0; y < srcImg.height; y++) {
+                    let offset = floor(maxOffset * noise(y / (srcImg.height * 0.08)));
+                    srcImg.copy(srcImg, startX + offset, y, 1, 1, 
+                                        startX + offset, y, srcImg.width - startX - offset, 1);
+                }
+            } else {
+                srcImg.copy(srcImg, startX, 0, 1, srcImg.height, 
+                                    startX, 0, srcImg.width - startX, srcImg.height);
+            }
+        } else {
+            //vertical: random  -y
+            if (isdynamic) {
+                for (let x = 0; x < srcImg.width; x++) {
+                    let offset = floor(maxOffset * noise(x / (srcImg.width * 0.08)));
+                    srcImg.copy(srcImg, x, startY + offset, 1, 1,
+                                        x, startY + offset, 1, srcImg.height - startY - offset);
+                }
+            } else {
+                srcImg.copy(srcImg, 0, startY, srcImg.width, 1,
+                                    0, startY, srcImg.width, srcImg.height - startY);
+            }
+        }
+    }
+
+    scramble(srcImg, holes, factor) {
+        for (let  i = 0; i < holes.length; i++) {	
+            srcImg.copy(srcImg, round(holes[i].sx * factor), round(holes[i].sy * factor), round(holes[i].sw * factor), round(holes[i].sh * factor),
+                                round(holes[i].dx * factor), round(holes[i].dy * factor), round(holes[i].dw * factor), round(holes[i].dh * factor));
+        }
+    }
+    
+    
+    warp(srcImg, maxOffset) {
+        srcImg.loadPixels();
+    
+        if (maxOffset > 0) {
+            for (let x = 0; x < srcImg.width; x++) {
+                for (let y = 0; y < srcImg.height; y++) {
+                    let i = (x + y * srcImg.width) * COLOR_DEPTH;
+                    let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
+    
+                    srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
+                    srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
+                    srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
+                }
+            }
+        } else {
+            for (let x = srcImg.width - 1; x >= 0; x--) {
+                for (let y = 0; y < srcImg.height; y++) {
+                    let i = (x + y * srcImg.width) * COLOR_DEPTH;
+                    let offset = floor(maxOffset * noise( x / (srcImg.width*0.1), y / (srcImg.height * 0.1)));
+    
+                    srcImg.pixels[i] = srcImg.pixels[i + COLOR_DEPTH * offset];
+                    srcImg.pixels[i + 1] = srcImg.pixels[i + (COLOR_DEPTH * offset + 1)];
+                    srcImg.pixels[i + 2] = srcImg.pixels[i + (COLOR_DEPTH * offset + 2)];
+                }
+            }
+        }
+    
+        srcImg.updatePixels();
+    }
+
+    burn(srcImg, thresholdColor) {
+        srcImg.loadPixels();
+    
+        for (let x = 0; x < srcImg.width; x++) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let i = (x + y * srcImg.width) * COLOR_DEPTH;
+    
+                srcImg.pixels[i]     = (srcImg.pixels[i]     > thresholdColor[0]) ? srcImg.pixels[i] : 255;
+                srcImg.pixels[i + 1] = (srcImg.pixels[i + 1] > thresholdColor[1]) ? srcImg.pixels[i + 1] : 255;
+                srcImg.pixels[i + 2] = (srcImg.pixels[i + 2] > thresholdColor[2]) ? srcImg.pixels[i + 2] : 255;
+            }
+        }
+        srcImg.updatePixels();
+    }
+    
+    pixelNegative(srcImg) {
+        srcImg.loadPixels();
+    
+        for (let x = 0; x < srcImg.width; x++) {
+            for (let y = 0; y < srcImg.height; y++) {
+                let i = (x + y * srcImg.width) * COLOR_DEPTH;
+    
+                srcImg.pixels[i]     = 255 - srcImg.pixels[i];
+                srcImg.pixels[i + 1] = 255 - srcImg.pixels[i + 1];
+                srcImg.pixels[i + 2] = 255 - srcImg.pixels[i + 2];
+            }
+        }
+        srcImg.updatePixels();
+    }
+
+    addNoise(srcImg, quantity = 0.5) {
+        srcImg.loadPixels();
+    
+        for (let i = 0; i < srcImg.pixels.length; i += 4) {
+            srcImg.pixels[i] += round(quantity * 255 * (random() - 0.5));
+            srcImg.pixels[i + 1] += round(quantity * 255 * (random() - 0.5));
+            srcImg.pixels[i + 2] += round(quantity * 255 * (random() - 0.5));
+        }
+    
+        srcImg.updatePixels();
+    }
+
+    rgbTranslate(srcImg, rx = 0, ry = 0, gx = 0, gy = 0, bx = 0, by = 0) {
+        let w = srcImg.width;
+        let h = srcImg.height;
+        let imgOut = createImage(w, h);
+        let rxOut, ryOut, gxOut, gyOut, bxOut, byOut;
+        let ir, ig, ib, i;
+    
+        srcImg.loadPixels();
+        imgOut.loadPixels();
+    
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            rxOut = (x + rx) % w;
+            ryOut = (y + ry) % h;
+            gxOut = (x + gx) % w;
+            gyOut = (y + gy) % h;
+            bxOut = (x + bx) % w;
+            byOut = (y + by) % h;
+    
+            ir = 4 * (rxOut + ryOut * w);
+            ig = 4 * (gxOut + gyOut * w) + 1;
+            ib = 4 * (bxOut + byOut * w) + 2;
+            i = 4 * (x + y * w);
+    
+            imgOut.pixels[ir] = srcImg.pixels[i];
+            imgOut.pixels[ig] = srcImg.pixels[i + 1];
+            imgOut.pixels[ib] = srcImg.pixels[i + 2];
+          }
+        }
+    
+        
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                i = 4 * (x + y * w);
+                if ((imgOut.pixels[i] === 0) && (imgOut.pixels[i+1] === 0) && (imgOut.pixels[i+2] === 0)) {
+                    imgOut.pixels[i + 3] = 0;
+                } else {
+                    imgOut.pixels[i + 3] = 255; 
+                }
+            }
+        }
+    
+        imgOut.updatePixels();
+        srcImg.copy(imgOut, 0, 0, w, h, 0, 0, w, h);
+      }
+
 }

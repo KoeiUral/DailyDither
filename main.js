@@ -53,6 +53,7 @@ function setup() {
 
     myMixer = new Mixer();
     myMixer.addRandomSources();
+    //myMixer.setTestProp();
 
     createGui();
 }
