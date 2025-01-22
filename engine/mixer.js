@@ -9,11 +9,6 @@ const DIST = 0.4;
 */
 
 const MAX_SRC_NBR = 4;
-const AUTOMATA_P = 0.5;
-const TWO_D_P = 0.8;
-const THREE_D_P = 1;
-
-
 
 const SourceType = {
     DUMMY: 1,
@@ -21,6 +16,12 @@ const SourceType = {
     TWO_D: 3,
     AUTOMA: 4
   };
+
+const sourceProb = [
+    {type: SourceType.THREE_D, prob:  5},
+    {type: SourceType.TWO_D,   prob: 30},
+    {type: SourceType.AUTOMA,  prob: 65}
+];
 
 
 class Mixer {
@@ -46,6 +47,16 @@ class Mixer {
         this.dsx = 0;
         this.dsy = 0;
         this.noiseVel = createVector(random(-1,1), random(-1,1));
+
+        // Nomralize the probability array
+        let sum = 0;
+        for (let item of sourceProb) {
+            sum += item.prob;
+        }
+
+        for (let item of sourceProb) {
+            item.prob = item.prob / sum;
+        }
     }
 
     addSource(type, size) {
@@ -194,25 +205,28 @@ class Mixer {
 
     addRandomSources() {
         let sourceNbr = round(random(1, MAX_SRC_NBR));
+        let sum;
+        let currentP;
+        let id;
 
         for (let i = 0; i < sourceNbr; i++) {
-            let typeProb = random();
-            let currentType;
+            sum = 0;
+            currentP = random();
 
-            if (typeProb < AUTOMATA_P) {
-                currentType = SourceType.AUTOMA;
-            } else if (typeProb < TWO_D_P) {
-                currentType = SourceType.TWO_D;
-            } else {
-                currentType = SourceType.THREE_D;
+            // Find type (id) corresponding to the random probability value
+            for (id = 0; id < sourceProb.length; id++) {
+                sum += sourceProb[id].prob;
+                if (currentP < sum) {
+                    break;
+                }
             }
 
-            this.addSource(currentType);
+            this.addSource(sourceProb[id].type);
         }
     }
 
     setTestProp () {
-        this.addRandomSources();
+        //this.addRandomSources();
         //this.addSource(SourceType.TWO_D);
         //this.addSource(SourceType.AUTOMA, 8);
         //this.addSource(SourceType.AUTOMA, 20);
