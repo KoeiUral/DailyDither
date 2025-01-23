@@ -22,7 +22,7 @@ const GLI_ON_P = 0.6;
 const HUE_OFF_MAX = 100;
 const HUE_INC_MAX = 15;
 const HUE_FLASH_MAX = 20;
-const SAMPLING_MAX = 10;
+const SAMPLING_MAX = 9;
 
 class Source {
     constructor() {
@@ -70,7 +70,7 @@ class Source {
         this.hueInc = floor(random(0, HUE_INC_MAX)) * (random() < HUE_INC_P);
         this.hueFlash = floor(random(0, HUE_FLASH_MAX)) * (random() < HUE_FLASH_P);
         this.hueSaturation = floor(random()) * (random() < HUE_SAT_P);
-        this.sampling = ceil(random(1, SAMPLING_MAX)) * (random() < SAMPLE_P);
+        this.sampling = 1 + ceil(random(1, SAMPLING_MAX)) * (random() < SAMPLE_P);
         
         let ditherProb = random();
         this.ditherAlgo = (ditherProb > DIT_STEIN_P) ? DitherType.STEIN : 0;
