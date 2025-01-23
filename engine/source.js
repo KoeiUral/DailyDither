@@ -70,7 +70,7 @@ class Source {
         this.hueInc = floor(random(0, HUE_INC_MAX)) * (random() < HUE_INC_P);
         this.hueFlash = floor(random(0, HUE_FLASH_MAX)) * (random() < HUE_FLASH_P);
         this.hueSaturation = floor(random()) * (random() < HUE_SAT_P);
-        this.sampling = 1 + floor(random(1, SAMPLING_MAX)) * (random() < SAMPLE_P);
+        this.sampling = ceil(random(1, SAMPLING_MAX)) * (random() < SAMPLE_P);
         
         let ditherProb = random();
         this.ditherAlgo = (ditherProb > DIT_STEIN_P) ? DitherType.STEIN : 0;
@@ -160,6 +160,7 @@ class DummySource extends Source {
         this.b = 0;
 
         this.graphCtx = createGraphics(DEFAULT_W, DEFAULT_H);
+        this.setBg(floor(random(255)), floor(random(255)), floor(random(255)));
     }
 
     setBg(r, g, b) {
