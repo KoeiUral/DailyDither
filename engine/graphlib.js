@@ -709,18 +709,14 @@ function getFiles(path) {
 
     // build up the regex according to browser
     if (navigator.userAgent.indexOf("Firefox") != -1) {
-        //rx = /href=\".*\/(.*)\"\sclass/;
         rx = /title=\"(.*)\"><span/;
     } else if (navigator.userAgent.indexOf("Chrome") != -1) {
         rx = /href=\"(.+)\?/;
     }
 
     for (let i = 0; i < contentList.length; i++) {
-        //const rx = /href=\"(.*)\"\sclass/;
-        //const rx = /href=\"(.+)\?/;
         let found = rx.exec(contentList[i]);
 
-        //if ((found !== null) && (found[1] !== "..")){
         if ((found !== null) && (found[1].indexOf("..") == -1)){
             files.push(found[1]);
         }

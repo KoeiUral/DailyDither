@@ -31,23 +31,9 @@ class Mixer {
         this.maxScale = 0;
 
         /* Noise generator parameters */
-        this.freqs = [1, 2, 4, 8, 16, 32];
-        this.amps =  [1, 1/2, 1/4, 1/8, 1/16, 1/32];
-        this.ampSum = 0;
-        this.sinK = 2;
-        this.expK = 1.3;
-
-        for (let amp of this.amps) {
-            this.ampSum += amp;
-        }
-
-        this.timeInc = 0.008;
-        this.spaceInc = 0.05;
         this.zOff = 0;
         this.dsx = 0;
         this.dsy = 0;
-        this.noiseVel = createVector(random(-1,1), random(-1,1));
-
         this.setRandomProp();
 
         // Nomralize the probability array
@@ -86,82 +72,6 @@ class Mixer {
     removeSource(id) {
 
     }
-
-    computeNoiseMask() {
-        let nx, ny;
-        let e = 0;
-        let d = 0;
-        //let xOff = 0;
-        //let yOff = 0;
-        let maskWidth;
-        let maskHeight;
-
-        // Get the maximum scaleFactor
-        this.maxScale = this.sourceList[0].sampling;
-        for (let i = 1; i < this.sourceList.length; i++) {
-            max(this.maxScale, this.sourceList[i].sampling)
-        }
-
-        // Cap the maximum scaling to 10
-        this.maxScale = max(5, this.maxScale);
-
-        // Get the width and height of the noise mask
-        maskWidth = floor(DEFAULT_W / this.maxScale);
-        maskHeight = floor(DEFAULT_H / this.maxScale);
-
-        // Clear the mask
-        this.noiseMask.length = 0;
-
-        let minNoiseVal = 1000;
-        let maxNoiseVal = -1000;
-        let maxDeltaNoise = 0;
-
-        // Compute the harmonic noise for each mask pixel coord
-        for (let y = 0; y < maskHeight; y++) {
-            this.noiseMask[y] = [];
-            //xOff = 0;
-            for (let x = 0; x < maskWidth; x++) {
-                nx = x / maskWidth;// - 0.5;
-                ny = y / maskHeight;// - 0.5;
-                //d = 1 - (1 - nx * nx) * (1 - ny * ny);
-                e = 0;
-
-                for (let j = 0; j < this.freqs.length; j++) {
-                    //e += this.amps[j] * (noiseGen.noise3D(nx * this.freqs[j], ny * this.freqs[j], /*sin(this.sinK  * this.zOff)) / 2 + 0.5);
-                    //e += this.amps[j] * (noiseGen.noise3D(nx * this.freqs[j] + this.dsx, ny * this.freqs[j] + this.dsy, this.zOff) / 2 + 0.5);
-                    e += this.amps[j] * (noiseGen.noise3D(nx * this.freqs[j] + this.dsx + j, ny * this.freqs[j] + this.dsy + j, this.zOff) / 2 + 0.5);
-                }
-
-                //e = e / 1.96875;
-                e = Math.pow(e, this.expK);
-                //e = round (e * 3) / 3;
-                //e = (1 - DIST) * e + DIST * (1 - d);  //equal to -> e = lerp (e, 1 - d, DIST);
-
-                if (e > maxNoiseVal) {
-                    maxNoiseVal = e;
-                } else if (e < minNoiseVal) {
-                    minNoiseVal = e;
-                }
-                this.noiseMask[y][x] = e;
-                //xOff += this.timeInc;
-            }
-            //yOff += this.timeInc;
-        }
-
-        maxDeltaNoise = maxNoiseVal - minNoiseVal;
-        // Normalise the noise Mask
-        for (let y = 0; y < maskHeight; y++) {
-            for (let x = 0; x < maskWidth; x++) {
-                this.noiseMask[y][x] = (this.noiseMask[y][x] - minNoiseVal) / maxDeltaNoise;
-            }
-        }
-
-        // Increment the Z-axis variable (i.e. time)
-        this.zOff += this.timeInc;
-        this.dsx +=  this.spaceInc * this.noiseVel.normalize().x;
-        this.dsy +=  this.spaceInc * this.noiseVel.normalize().y;
-    }
-
 
     setRandomProp() {
         let maskScale = random([5, 8, 10]);
