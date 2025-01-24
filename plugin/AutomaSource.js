@@ -222,6 +222,7 @@ class SourceAutoma extends Source {
     }
 
     update() {
+        this.graphCtx.background(0);
         this.runScroll();
         this.img = this.graphCtx.get();
     }

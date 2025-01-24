@@ -720,7 +720,8 @@ function getFiles(path) {
         //const rx = /href=\"(.+)\?/;
         let found = rx.exec(contentList[i]);
 
-        if ((found !== null) && (found[1] !== "..")){
+        //if ((found !== null) && (found[1] !== "..")){
+        if ((found !== null) && (found[1].indexOf("..") == -1)){
             files.push(found[1]);
         }
     }

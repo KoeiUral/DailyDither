@@ -48,6 +48,8 @@ class Mixer {
         this.dsy = 0;
         this.noiseVel = createVector(random(-1,1), random(-1,1));
 
+        this.setRandomProp();
+
         // Nomralize the probability array
         let sum = 0;
         for (let item of sourceProb) {
@@ -160,6 +162,84 @@ class Mixer {
         this.dsy +=  this.spaceInc * this.noiseVel.normalize().y;
     }
 
+
+    setRandomProp() {
+        let maskScale = random([5, 8, 10]);
+
+        this.noiseScale = random(45, 100);
+        this.persistance = 0.5;
+        this.lacunarity = 2;
+        this.octaves = round(random(3, 10));
+        this.octaveOffsets = [];
+        this.timeInc = random(0.008, 0.05);
+        this.spaceInc = random(0.01, 0.05);
+        this.noiseVel = createVector(random(-1,1), random(-1,1));
+        this.maskWidth = floor(DEFAULT_W / maskScale);
+        this.maskHeight = floor(DEFAULT_H/ maskScale);
+
+        for (let i = 0; i < this.octaves; i++) {
+            let xOffset = random(-100, 100);
+            let yOffset = random(-100, 100);
+
+            this.octaveOffsets.push(createVector(xOffset, yOffset));
+        }
+    }
+
+    updateNoiseMask() {
+        let minNoiseVal = 1000;
+        let maxNoiseVal = -1000;
+        let maxDeltaNoise = 0;
+
+        // Clear the mask
+        this.noiseMask.length = 0;
+
+        // Compute the harmonic noise for each mask pixel coord
+        for (let y = 0; y < this.maskHeight; y++) {
+            this.noiseMask[y] = [];
+            for (let x = 0; x < this.maskWidth; x++) {
+				let amplitude = 1;
+				let frequency = 1;
+				let noiseHeight = 0;
+
+                // Compute simplex noise per octave (freq and magnitude)
+                for (let i = 0; i < this.octaves; i++) {
+                    let sampleX = x / this.noiseScale * frequency + this.octaveOffsets[i].x + this.dsx;
+                    let sampleY = y / this.noiseScale * frequency + this.octaveOffsets[i].y + this.dsy;
+
+                    let noiseVal = noiseGen.noise3D(sampleX, sampleY, this.zOff) / 2 + 0.5;
+                    noiseHeight += noiseVal * amplitude;
+
+                    amplitude *= this.persistance;
+                    frequency *= this.lacunarity;
+                }
+
+                // Store min and max value
+                if (noiseHeight > maxNoiseVal) {
+                    maxNoiseVal = noiseHeight;
+                } else if (noiseHeight < minNoiseVal) {
+                    minNoiseVal = noiseHeight;
+                }
+
+                this.noiseMask[y][x] = noiseHeight;
+            }
+        }
+
+        // Normalise the noise Mask
+        maxDeltaNoise = maxNoiseVal - minNoiseVal;
+        for (let y = 0; y < this.maskHeight; y++) {
+            for (let x = 0; x < this.maskWidth; x++) {
+                this.noiseMask[y][x] = (this.noiseMask[y][x] - minNoiseVal) / maxDeltaNoise;
+            }
+        }
+
+        // Increment the Z-axis variable (i.e. time)
+        this.zOff += this.timeInc;
+        this.dsx +=  this.spaceInc * this.noiseVel.normalize().x;
+        this.dsy +=  this.spaceInc * this.noiseVel.normalize().y;
+    }
+
+
+
     computeSplitMask() {
         let maskWidth;
         let maskHeight;
@@ -205,7 +285,8 @@ class Mixer {
         let tempImg;
 
         // Compute noise mask for source mixing
-        this.computeNoiseMask();
+        //this.computeNoiseMask();
+        this.updateNoiseMask();
 
         // Iterate over all the sources
         for (let i = 0; i < this.sourceList.length; i++) {

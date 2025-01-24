@@ -32,7 +32,7 @@ const SHIFT_BY = 5;
 const MIN_GL_FRAMES = 7;
 const MAX_GL_FRAMES = 35;
 const MAX_SEQ_LEN = 10;
-const STEP_WAIT_TIME = 40;
+const STEP_WAIT_TIME = 35;
 
 
 class Glitcher {
