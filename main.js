@@ -1,13 +1,15 @@
 let myMixer;
 let myCanvas;
 let recDuration = 100;
+let confData;
 
 const WIDGET_SIZE = 20;
 const DEBUG = false;
+const CONF_PATH = './media/conf/my_conf.json';
 
 function preload() {
     myFont = loadFont(FONT_PATH);
-
+    confData = loadJSON(CONF_PATH);
 }
 
 function mouseClicked() {
@@ -49,9 +51,10 @@ function createGui() {
 
 function setup() {
     // Init graphic lib
-    initGraphLib();
+    initGraphLib(confData);
 
     myMixer = new Mixer();
+    myMixer.loadConf(confData);
     myMixer.addRandomSources();
     //myMixer.setTestProp();
 

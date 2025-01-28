@@ -53,6 +53,6 @@ canvas {
     position: static;
     top: 0;
     left: 0;
-    max-height: 600px; 
-    max-width: 600px;
+    max-height: 2000px; 
+    max-width: 2000px;
 }

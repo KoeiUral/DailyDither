@@ -1,5 +1,5 @@
-const DEFAULT_W = 600;
-const DEFAULT_H = 600;
+let DEFAULT_W = 600;
+let DEFAULT_H = 600;
 
 const FONT_SIZE = 26;
 const COLOR_MAX = 255;
@@ -231,7 +231,16 @@ function initFonts(fontImg) {
 }
 
 
-function initGraphLib() {
+function initGraphLib(confObj) {
+    // Copy the data into variable
+    let config = JSON.parse(JSON.stringify(confObj));
+
+    // Set width and height per json file
+    DEFAULT_W = config['GLOBAL']['Canvas'].w;
+    DEFAULT_H = config['GLOBAL']['Canvas'].h;
+
+    console.log ("W: %d, H: %d", DEFAULT_W, DEFAULT_H);
+
     pixelDensity(1);
     initNoise();
     initBayerMatrix();

@@ -17,13 +17,6 @@ const SourceType = {
     AUTOMA: 4
   };
 
-const sourceProb = [
-    {type: SourceType.THREE_D, prob:  5},
-    {type: SourceType.TWO_D,   prob: 30},
-    {type: SourceType.AUTOMA,  prob: 65}
-];
-
-
 class Mixer {
     constructor() {
         this.sourceList = [];
@@ -34,17 +27,42 @@ class Mixer {
         this.zOff = 0;
         this.dsx = 0;
         this.dsy = 0;
+        this.maxSrcNbr = MAX_SRC_NBR;
+        this.sourceProb =  [
+            {type: SourceType.THREE_D, prob:  5},
+            {type: SourceType.TWO_D,   prob: 30},
+            {type: SourceType.AUTOMA,  prob: 65}
+        ];
+
         this.setRandomProp();
+    }
+
+    loadConf (confObj) {
+        // Copy the data into variable
+        let config = JSON.parse(JSON.stringify(confObj));
+
+        // Get max number of random sources
+        this.maxSrcNbr = config['GLOBAL']['MaxSources'];
+
+        // clear the source default array
+        this.sourceProb.length = 0;
+
+        // Populate it from json file
+        for (let source of config['GLOBAL']['Probability']) {
+            this.sourceProb.push({type: source.type, prob: source.value});
+        }
 
         // Nomralize the probability array
         let sum = 0;
-        for (let item of sourceProb) {
+        for (let item of this.sourceProb) {
             sum += item.prob;
         }
 
-        for (let item of sourceProb) {
+        for (let item of this.sourceProb) {
             item.prob = item.prob / sum;
         }
+
+
     }
 
     addSource(type, size) {
@@ -67,6 +85,28 @@ class Mixer {
         }
 
         this.sourceList.push(newSource);
+    }
+
+    addRandomSources() {
+        let sourceNbr = round(random(1, this.maxSrcNbr));
+        let sum;
+        let currentP;
+        let id;
+
+        for (let i = 0; i < sourceNbr; i++) {
+            sum = 0;
+            currentP = random();
+
+            // Find type (id) corresponding to the random probability value
+            for (id = 0; id < this.sourceProb.length; id++) {
+                sum += this.sourceProb[id].prob;
+                if (currentP < sum) {
+                    break;
+                }
+            }
+
+            this.addSource(this.sourceProb[id].type);
+        }
     }
 
     removeSource(id) {
@@ -209,28 +249,6 @@ class Mixer {
             // Display temp image on canvas
             if (tempImg !== undefined)
                 image(tempImg, 0, 0, DEFAULT_W, DEFAULT_H);
-        }
-    }
-
-    addRandomSources() {
-        let sourceNbr = round(random(1, MAX_SRC_NBR));
-        let sum;
-        let currentP;
-        let id;
-
-        for (let i = 0; i < sourceNbr; i++) {
-            sum = 0;
-            currentP = random();
-
-            // Find type (id) corresponding to the random probability value
-            for (id = 0; id < sourceProb.length; id++) {
-                sum += sourceProb[id].prob;
-                if (currentP < sum) {
-                    break;
-                }
-            }
-
-            this.addSource(sourceProb[id].type);
         }
     }
 

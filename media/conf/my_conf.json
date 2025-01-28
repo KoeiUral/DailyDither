@@ -1,0 +1,20 @@
+{
+    "GLOBAL": {
+        "Canvas": {"w": 600, "h": 600},
+        "MaxSources": 4,
+        "Probability" : [
+            {"memo": "3D", "type": 2, "value": 5},
+            {"memo": "2D", "type": 3, "value": 30},
+            {"memo": "AUTOMATA", "type": 4, "value": 65}
+        ]
+    },
+    "3D":{
+
+    },
+    "2D":{
+
+    },
+    "AUTOMATA":{
+
+    }
+}
