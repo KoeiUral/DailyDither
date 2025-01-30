@@ -1,6 +1,9 @@
 let myMixer;
 let myCanvas;
 let recDuration = 100;
+let webmCapturer;
+let webmPeriod = -1;
+let webmStarted = false;
 let confData;
 
 const WIDGET_SIZE = 20;
@@ -26,7 +29,12 @@ function startSavingGIF() {
 }
 
 function startSavingWEBM() {
+    webmPeriod = recDuration;
 
+    if (webmStarted == false) {
+        webmStarted = true;
+        webmCapturer.start();
+    }
 }
 
 
@@ -42,9 +50,13 @@ function createGui() {
     gifBtn = createButton('SAVE GIF');
     gifBtn.mousePressed(startSavingGIF);
 
+    webmBtn = createButton('SAVE WEBM');
+    webmBtn.mousePressed(startSavingWEBM);
+
     /* Hook widget to html */
     gifDurationInput.parent('html_gifDurInput');
     gifBtn.parent('html_gifBtn');
+    webmBtn.parent('html_webmBtn');
 }
 
 
@@ -58,6 +70,10 @@ function setup() {
     myMixer.addRandomSources();
     //myMixer.setTestProp();
 
+    // Read frame rate from json and create the webm capturer
+    let frameRate = configMap['GLOBAL']['WebM_FrameRate'];
+    webmCapturer = new CCapture( { format: 'webm', display: true, framerate: frameRate} );
+
     createGui();
 }
 
@@ -70,5 +86,15 @@ function draw() {
     if (DEBUG) {
         let fps = round(frameRate());
         text(fps, 50, 50);
+    }
+
+    /* Save the WEBM  */
+    if (webmPeriod > 0) {
+        webmCapturer.capture(document.getElementById('defaultCanvas0'));
+        webmPeriod--;
+    } else if (webmPeriod == 0) {
+        webmCapturer.stop();
+        webmCapturer.save();
+        webmPeriod--;
     }
 }
