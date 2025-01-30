@@ -18,6 +18,8 @@ let dsx = 0;
 let dsy = 0;
 let noiseVel;
 
+let configMap;
+
 let mixerDensityInc = INCREMENT;
 let mixerVelocity = INCREMENT_S;
 
@@ -233,11 +235,11 @@ function initFonts(fontImg) {
 
 function initGraphLib(confObj) {
     // Copy the data into variable
-    let config = JSON.parse(JSON.stringify(confObj));
+    configMap = JSON.parse(JSON.stringify(confObj));
 
     // Set width and height per json file
-    DEFAULT_W = config['GLOBAL']['Canvas'].w;
-    DEFAULT_H = config['GLOBAL']['Canvas'].h;
+    DEFAULT_W = configMap['GLOBAL']['Canvas'].w;
+    DEFAULT_H = configMap['GLOBAL']['Canvas'].h;
 
     console.log ("W: %d, H: %d", DEFAULT_W, DEFAULT_H);
 

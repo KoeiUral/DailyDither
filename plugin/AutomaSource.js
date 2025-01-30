@@ -1,14 +1,3 @@
-const CHANGE_PROB = 0.04;
-const MIN_SIZE = 4;
-const MAX_SIZE = 10;
-const MIN_DEPTH = 3;
-const MAX_DEPTH = 7;
-const INIT_PROB = 0.3;
-
-const SIZE_LIST = [4, 5, 6, 8, 10, 12, 15, 20];
-const COLOR_NBR = 3;      
-const RULE_VAL = 0;       // If set to 0, then a random number is set
-
 const COLOR_PATH = './media/colors/';
 
 /**
@@ -133,17 +122,18 @@ class SourceAutoma extends Source {
         let colorFiles = getFiles(COLOR_PATH);
         let colorId = floor(random(colorFiles.length));
 
-        // Set colore pallette
-        this.loadPalette(colorFiles[colorId]);
-
-        // Set the size
-        let index = floor(random(SIZE_LIST.length));
-        this.currentSize = SIZE_LIST[index];
+        // Set the size and min/max depth
+        this.minDepth = configMap['AUTOMA']['SpecificVal'].Depth_min;
+        this.maxDepth = configMap['AUTOMA']['SpecificVal'].Depth_max;
+        this.currentSize = random(configMap['AUTOMA']['SpecificVal'].Size_list);
         this.maxCols = round(DEFAULT_H / this.currentSize);
 
         // Set depth and rule
-        this.currentDepth = floor(random(MIN_DEPTH, MAX_DEPTH));
+        this.currentDepth = floor(random(this.minDepth, this.maxDepth ));
         this.currentRule = floor(random(pow(this.currentDepth , this.currentDepth * 3 - 2)));
+
+        // Set colore pallette
+        this.loadPalette(colorFiles[colorId]);
 
         console.log("AUTOMATA - size:%d, depth:%d, cols:%f, color:%s", this.currentSize, this.currentDepth, this.maxCols, colorFiles[colorId]);
     }
@@ -156,7 +146,7 @@ class SourceAutoma extends Source {
     }
 
     onJsonLoaded(jData) {
-        for (let i = 0; i < MAX_DEPTH; i++) {
+        for (let i = 0; i < this.maxDepth; i++) {
             this.fullPalette[i] = color(jData[i].levels[0], jData[i].levels[1], jData[i].levels[2]);
         }
  
@@ -165,12 +155,12 @@ class SourceAutoma extends Source {
 
     startRandomRule() {
         // Generate new random depth and rule
-        this.currentDepth = floor(random(MIN_DEPTH, MAX_DEPTH));
+        this.currentDepth = floor(random(this.minDepth, this.maxDepth ));
         this.currentRule = floor(random(pow(this.currentDepth , this.currentDepth * 3 - 2)));
 
         // Add a new line of cells accordingly
         this.stripes.push(new CellStrip(this.currentSize, this.currentDepth, this.currentRule, this.fullPalette, this.graphCtx));
-        this.stripes[(this.stripes.length - 1)].init(INIT_PROB);
+        this.stripes[(this.stripes.length - 1)].init(configMap['AUTOMA']['SpecificProb'].Init_p);
     }
 
     evolve() {
@@ -201,7 +191,7 @@ class SourceAutoma extends Source {
     }
 
     runScroll() {
-        if ((this.coolDown <= 0) && (random(1) < CHANGE_PROB)) {
+        if ((this.coolDown <= 0) && (random() < configMap['AUTOMA']['SpecificProb'].ChangeRule_p)) {
             this.startRandomRule();
             this.coolDown = 5;
         }

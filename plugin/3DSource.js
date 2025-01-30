@@ -1,18 +1,4 @@
-
 const MODEL_PATH = './media/model/';
-const MAX_TARGETS = 3;
-
-const TEXT_P = 0.5;
-const TEXT_VID_P = 0.2;
-const ROT_X_P = 0.5;
-const ROT_Y_P = 0.5;
-const ROT_Z_P = 0.5;
-const ROT_MAX = 0.3;
-const TRAN_POINT_P = 0.5;
-const TRAN_POINT_MAX = 10;
-const TRAN_Z_MIN = -800;
-const TRAN_Z_MAX = -200;
-
 
 class Source3D extends Source {
     constructor() {
@@ -30,13 +16,7 @@ class Source3D extends Source {
         this.targetsInUse = [];
         this.targetUsed = 0;
         this.targetIndex = 0;
-        this.targetSpeed = 0.1; // TODO: Remove magic
-
-        // Init the target positions
-        for (let i = 0; i < MAX_TARGETS; i++) {
-            this.targets.push(createVector(0, 0, 0));
-            this.targetsInUse.push(false);
-        }
+        this.targetSpeed = 0.1;
         this.currentPos = createVector(0, 0, 0);
 
         this.model;
@@ -49,14 +29,19 @@ class Source3D extends Source {
         let videoFiles = getFiles(VIDEO_PATH);
         let imageFiles = getFiles(IMAGE_PATH);
         let texPath = '';
-
+        let RotMax = configMap['3D']['SpecificVal'].Rot_max;
+        let TranPointsMax = configMap['3D']['SpecificVal'].TranPoints_max;
+        let TransZMin = configMap['3D']['SpecificVal'].TransZ_min;
+        let TransZMax = configMap['3D']['SpecificVal'].TransZ_max;
+        let maxTargetSpeed = configMap['3D']['SpecificVal'].TargetMax_speed;
+        
         let modelId = floor(random(modelFiles.length));
         this.loadModel(modelFiles[modelId]);
 
         // Apply a texture 
-        if (random() < TEXT_P) {
+        if (random() < configMap['3D']['SpecificProb'].Texture_p) {
             // Choose Video vs Image
-            if ((random() < TEXT_VID_P)) {
+            if ((random() < configMap['3D']['SpecificProb'].TextureVideo_p)) {
                 let videoId = floor(random(videoFiles.length));
                 texPath = videoFiles[videoId];
             } else {
@@ -67,17 +52,19 @@ class Source3D extends Source {
             this.loadTexture(texPath);
         }
 
-        this.xRot = random(ROT_MAX) * (random() < ROT_X_P);
-        this.yRot = random(ROT_MAX) * (random() < ROT_Y_P);
-        this.zRot = random(ROT_MAX) * (random() < ROT_Z_P);
+        this.xRot = random(RotMax) * (random() < configMap['3D']['SpecificProb'].RotX_p);
+        this.yRot = random(RotMax) * (random() < configMap['3D']['SpecificProb'].RotY_p);
+        this.zRot = random(RotMax) * (random() < configMap['3D']['SpecificProb'].RotZ_p);
 
-        let pointsNbr = floor(random(TRAN_POINT_MAX)) * (random() < TRAN_POINT_P);
+        let pointsNbr = floor(random(TranPointsMax)) * (random() < configMap['3D']['SpecificProb'].Transition_p);
         for (let i = 0; i < pointsNbr; i++) {
             let xValue = floor(random(DEFAULT_W));
             let yValue = floor(random(DEFAULT_H));
-            let zValue = floor(random(TRAN_Z_MIN, TRAN_Z_MAX));
+            let zValue = floor(random(TransZMin, TransZMax));
             this.addTransaltionTarget(xValue, yValue, zValue);
         }
+
+        this.targetSpeed = random(0.1, maxTargetSpeed);
 
         console.log("     3D - model: %s, texture: %s, rotX: %f, rotY: %f, rotZ: %f, transPoints: %d", modelFiles[modelId], texPath, this.xRot, this.yRot, this.zRot, pointsNbr);
     }

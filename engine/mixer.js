@@ -8,13 +8,11 @@ const EXP = 2;
 const DIST = 0.4;
 */
 
-const MAX_SRC_NBR = 4;
-
 const SourceType = {
-    DUMMY: 1,
-    THREE_D: 2,
-    TWO_D: 3,
-    AUTOMA: 4
+    DUMMY: 'DUMMY',
+    THREE_D: '3D',
+    TWO_D: '2D',
+    AUTOMA: 'AUTOMA'
   };
 
 class Mixer {
@@ -27,7 +25,7 @@ class Mixer {
         this.zOff = 0;
         this.dsx = 0;
         this.dsy = 0;
-        this.maxSrcNbr = MAX_SRC_NBR;
+
         this.sourceProb =  [
             {type: SourceType.THREE_D, prob:  5},
             {type: SourceType.TWO_D,   prob: 30},
@@ -71,7 +69,7 @@ class Mixer {
         if (type === SourceType.DUMMY) {
             newSource = new DummySource();
         } else if (type === SourceType.AUTOMA) {            
-            newSource = new SourceAutoma(4, COLOR_NBR, RULE_VAL);
+            newSource = new SourceAutoma(4, 3, 0);  // TODO: remove magic, these are default values
             newSource.setRandomProperties(type);
 
             newSource.sampling = newSource.currentSize;

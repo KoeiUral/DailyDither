@@ -5,25 +5,6 @@ const DitherType = {
     BAYER: 2
   };
 
-const BW_P = 0.2;
-const HUE_OFF_P = 0.5;
-const HUE_INC_P = 0.5;
-const HUE_FLASH_P = 0.5;
-const HUE_SAT_P = 0.5;
-const SAMPLE_P = 0.8;
-const DIT_STEIN_P = 0.33;
-const DIT_BAY_P = 0.66;
-const ASCII_P = 0.3;
-const ASCII_COL_P = 0.2;
-const GLI_PRE_P = 0.3;
-const GLI_DYN_P = 0.7;
-const GLI_ON_P = 0.6;
-
-const HUE_OFF_MAX = 100;
-const HUE_INC_MAX = 15;
-const HUE_FLASH_MAX = 20;
-const SAMPLING_MAX = 9;
-
 class Source {
     constructor() {
         this.type = 0;
@@ -60,34 +41,41 @@ class Source {
     }
 
     setRandomProperties(type) {
+        // Store the type
         this.type = type;
+
         // Call specific properties
         this.setSpecificProperties();
 
+        let HueOffMax = configMap[type]['EffectsVal'].HueOff_max;
+        let HueIncMax = configMap[type]['EffectsVal'].HueInc_max;
+        let HueFlashMax = configMap[type]['EffectsVal'].HueFlash_max;
+        let SampleMax = configMap[type]['EffectsVal'].Sample_max;
+
         // Set the common properties to each source
-        this.isBWOn = (random() < BW_P);
-        this.hueOffset = floor(random(0, HUE_OFF_MAX)) * (random() < HUE_OFF_P);
-        this.hueInc = floor(random(0, HUE_INC_MAX)) * (random() < HUE_INC_P);
-        this.hueFlash = floor(random(0, HUE_FLASH_MAX)) * (random() < HUE_FLASH_P);
-        this.hueSaturation = floor(random()) * (random() < HUE_SAT_P);
-        this.sampling = 1 + ceil(random(1, SAMPLING_MAX)) * (random() < SAMPLE_P);
+        this.isBWOn = (random() < configMap[type]['EffectsProb'].BW_p);
+        this.hueOffset = floor(random(0, HueOffMax)) * (random() < configMap[type]['EffectsProb'].HueOff_p);
+        this.hueInc = floor(random(0, HueIncMax)) * (random() < configMap[type]['EffectsProb'].HueInc_p);
+        this.hueFlash = floor(random(0, HueFlashMax)) * (random() < configMap[type]['EffectsProb'].HueFlash_p);
+        this.hueSaturation = floor(random()) * (random() < configMap[type]['EffectsProb'].HueSat_p);
+        this.sampling = 1 + ceil(random(1, SampleMax)) * (random() < configMap[type]['EffectsProb'].Sample_p);
         
         let ditherProb = random();
-        this.ditherAlgo = (ditherProb > DIT_STEIN_P) ? DitherType.STEIN : 0;
-        this.ditherAlgo = (ditherProb > DIT_BAY_P) ? DitherType.BAYER : this.ditherAlgo;
-        this.colDither = 4; // TODO: set random value
-        this.dimDither = 2; // TODO: set random value
+        this.ditherAlgo = (ditherProb > configMap[type]['EffectsProb'].DitStain_p) ? DitherType.STEIN : 0;
+        this.ditherAlgo = (ditherProb > configMap[type]['EffectsProb'].DitBay_p) ? DitherType.BAYER : this.ditherAlgo;
+        this.colDither = configMap[type]['EffectsVal'].DitBayCol;
+        this.dimDither = configMap[type]['EffectsVal'].DitBayDim;
 
-        this.isAsciiOn = (random() < ASCII_P);;
-        this.isAsciiColor = (random() < ASCII_COL_P);
+        this.isAsciiOn = (random() < configMap[type]['EffectsProb'].Ascii_p);;
+        this.isAsciiColor = (random() < configMap[type]['EffectsProb'].AsciiColor_p);
         this.sampling = ((this.isAsciiOn) && (this.sampling < 8)) ? 8 : this.sampling;
 
         // Glitcher
         this.glitcher.setImagScale(this.sampling);
-        this.glitcher.isPreOn = (random() < GLI_PRE_P);
-        this.dynamicGlitch = (random() < GLI_DYN_P);
+        this.glitcher.isPreOn = (random() < configMap[type]['EffectsProb'].GlitchPre_p);
+        this.dynamicGlitch = (random() < configMap[type]['EffectsProb'].GlitchDyn_p);
 
-        if (random() < GLI_ON_P) {
+        if (random() < configMap[type]['EffectsProb'].Glitch_p) {
            this.glitcher.startSequence();
         }
 
